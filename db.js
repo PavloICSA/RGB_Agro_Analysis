@@ -166,7 +166,7 @@ class ArchiveManager {
         const selectedIndex = document.getElementById('archiveFilterIndex').value;
 
         this.filteredRecords = this.allRecords.filter(record => {
-            const matchesSearch = !searchTerm || 
+            const matchesSearch = !searchTerm ||
                 record.field_group.toLowerCase().includes(searchTerm) ||
                 record.index_name.toLowerCase().includes(searchTerm);
 
@@ -174,6 +174,16 @@ class ArchiveManager {
 
             return matchesSearch && matchesIndex;
         });
+
+        // Pendo Track Event: archive_search_executed
+        if (typeof pendo !== 'undefined') {
+            pendo.track('archive_search_executed', {
+                search_term: (searchTerm || '').substring(0, 100),
+                selected_index_filter: selectedIndex || 'all',
+                results_count: this.filteredRecords.length,
+                total_records_count: this.allRecords.length
+            });
+        }
 
         this.renderTable();
     }
@@ -378,6 +388,14 @@ class ArchiveManager {
                 return;
             }
 
+            // Pendo Track Event: archive_record_deleted
+            if (typeof pendo !== 'undefined') {
+                pendo.track('archive_record_deleted', {
+                    record_id: recordId,
+                    remaining_records_count: this.allRecords.length - 1
+                });
+            }
+
             // Remove from local records
             this.allRecords = this.allRecords.filter(r => r.id !== recordId);
             this.filteredRecords = this.filteredRecords.filter(r => r.id !== recordId);
@@ -485,12 +503,22 @@ class ArchiveManager {
         const url = URL.createObjectURL(blob);
 
         link.setAttribute('href', url);
-        link.setAttribute('download', `analysis_archive_${new Date().toISOString().split('T')[0]}.csv`);
+        const exportFilename = `analysis_archive_${new Date().toISOString().split('T')[0]}.csv`;
+        link.setAttribute('download', exportFilename);
         link.style.visibility = 'hidden';
 
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
+
+        // Pendo Track Event: archive_exported_csv
+        if (typeof pendo !== 'undefined') {
+            pendo.track('archive_exported_csv', {
+                records_count: this.filteredRecords.length,
+                export_filename: exportFilename,
+                locale: i18n.currentLanguage
+            });
+        }
     }
 
     /**
@@ -672,6 +700,20 @@ class AnalysisManager {
         // Display results
         this.displayStatisticsTable();
 
+        // Pendo Track Event: descriptive_statistics_generated
+        if (typeof pendo !== 'undefined') {
+            const outlierCount = (this.currentStatistics.outliers || []).filter(o => o.isOutlier).length;
+            pendo.track('descriptive_statistics_generated', {
+                selected_records_count: this.selectedRecords.length,
+                stat_count: this.currentStatistics.count,
+                stat_mean: parseFloat(this.currentStatistics.mean.toFixed(6)),
+                stat_std_dev: parseFloat(this.currentStatistics.stdDev.toFixed(6)),
+                stat_cv: parseFloat(this.currentStatistics.cv.toFixed(2)),
+                outlier_count: outlierCount,
+                stat_r_squared: parseFloat(this.currentStatistics.rSquared.toFixed(6))
+            });
+        }
+
         // Show results section
         document.getElementById('statisticsResults').classList.remove('hidden');
         document.getElementById('trendResults').classList.add('hidden');
@@ -776,6 +818,19 @@ class AnalysisManager {
 
         // Display trend summary
         this.displayTrendSummary();
+
+        // Pendo Track Event: trend_analysis_completed
+        if (typeof pendo !== 'undefined') {
+            const trendLineData = linearTrend(values);
+            pendo.track('trend_analysis_completed', {
+                selected_records_count: this.selectedRecords.length,
+                date_range_start: dates[0],
+                date_range_end: dates[dates.length - 1],
+                moving_average_window: Math.min(5, Math.floor(values.length / 2)),
+                trend_slope: parseFloat(trendLineData.slope.toFixed(6)),
+                r_squared: parseFloat(generateDescriptiveStatistics(values).rSquared.toFixed(6))
+            });
+        }
 
         // Show results section
         document.getElementById('statisticsResults').classList.add('hidden');
@@ -938,6 +993,14 @@ class AnalysisManager {
             ['Trend Slope', stats.trendSlope.toFixed(6)]
         ].map(row => row.map(cell => `"${cell}"`).join(',')).join('\n');
 
+        // Pendo Track Event: statistics_exported_csv
+        if (typeof pendo !== 'undefined') {
+            pendo.track('statistics_exported_csv', {
+                statistics_count: stats.count,
+                export_filename: 'descriptive_statistics.csv'
+            });
+        }
+
         this.downloadCSV(csvContent, 'descriptive_statistics.csv');
     }
 
@@ -969,6 +1032,16 @@ class AnalysisManager {
             ['R²', stats.rSquared.toFixed(6)]
         ].map(row => row.map(cell => `"${cell}"`).join(',')).join('\n');
 
+        // Pendo Track Event: trend_results_exported_csv
+        if (typeof pendo !== 'undefined') {
+            pendo.track('trend_results_exported_csv', {
+                data_points_count: this.currentTrendData.values.length,
+                export_filename: 'trend_analysis.csv',
+                trend_slope: parseFloat(trendLine.slope.toFixed(6)),
+                r_squared: parseFloat(stats.rSquared.toFixed(6))
+            });
+        }
+
         this.downloadCSV(csvContent, 'trend_analysis.csv');
     }
 
@@ -981,8 +1054,16 @@ class AnalysisManager {
         const canvas = document.getElementById('trendChart');
         const link = document.createElement('a');
         link.href = canvas.toDataURL('image/png');
-        link.download = `trend_chart_${new Date().toISOString().split('T')[0]}.png`;
+        const exportFilename = `trend_chart_${new Date().toISOString().split('T')[0]}.png`;
+        link.download = exportFilename;
         link.click();
+
+        // Pendo Track Event: trend_chart_exported_png
+        if (typeof pendo !== 'undefined') {
+            pendo.track('trend_chart_exported_png', {
+                export_filename: exportFilename
+            });
+        }
     }
 
     /**
