@@ -166,10 +166,24 @@ class AuthManager {
     onAuthStateChange(user) {
         if (user) {
             console.log('User logged in:', user.email);
+
+            // Identify the signed-in user to Pendo
+            pendo.identify({
+                visitor: {
+                    id: user.id,
+                    email: user.email,
+                    full_name: user.user_metadata && user.user_metadata.full_name ? user.user_metadata.full_name : ''
+                }
+            });
+
             // Trigger UI update - can be overridden
             this.updateUIForLoggedIn(user);
         } else {
             console.log('User logged out');
+
+            // Clear Pendo session so the next user is not tracked under the previous identity
+            pendo.clearSession();
+
             this.updateUIForLoggedOut();
         }
     }
