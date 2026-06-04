@@ -378,13 +378,15 @@ class ArchiveManager {
         this.cancelDelete();
 
         try {
-            const { error } = await this.supabase
+            const { data, error } = await this.supabase
                 .from('analysis_results')
                 .delete()
-                .eq('id', recordId);
+                .eq('id', recordId)
+                .select();
 
             if (error) {
-                this.showError('Failed to delete record');
+                console.error('Delete error:', error);
+                this.showError('Failed to delete record: ' + error.message);
                 return;
             }
 
