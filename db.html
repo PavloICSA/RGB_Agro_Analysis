@@ -1,0 +1,185 @@
+<!-- Archive Database View -->
+<div id="archiveModal" class="archive-modal hidden">
+    <div class="archive-container">
+        <div class="archive-header">
+            <h2 data-i18n="archiveTitle">📊 Analysis Archive</h2>
+            <button class="archive-close-btn" onclick="archiveManager.closeArchive();" title="Close">✕</button>
+        </div>
+        
+        <div class="archive-tabs">
+            <button class="tab-button active" onclick="archiveManager.switchTab('browse');" data-i18n="archive">Archive</button>
+            <button class="tab-button" onclick="archiveManager.switchTab('analysis');" data-i18n="descriptiveStatistics">Statistics</button>
+        </div>
+        
+        <!-- Browse Tab -->
+        <div id="browseTab" class="archive-tab-content active">
+            <div class="archive-controls">
+                <input type="text" id="archiveSearch" placeholder="Search by field group or index..." class="search-input" data-i18n="searchPlaceholder">
+                <select id="archiveFilterIndex" class="filter-select">
+                    <option value="" data-i18n="allIndices">All Indices</option>
+                    <option value="NGRDI">NGRDI</option>
+                    <option value="ExG">ExG</option>
+                    <option value="ExR">ExR</option>
+                    <option value="ExGR">ExGR</option>
+                    <option value="VARI">VARI</option>
+                    <option value="GLI">GLI</option>
+                    <option value="MGRVI">MGRVI</option>
+                    <option value="RGBVI">RGBVI</option>
+                    <option value="TGI">TGI</option>
+                    <option value="NDYI">NDYI</option>
+                    <option value="CIVE">CIVE</option>
+                    <option value="NPCI">NPCI</option>
+                    <option value="ExB">ExB</option>
+                    <option value="RGRI">RGRI</option>
+                    <option value="GBRI">GBRI</option>
+                    <option value="IKAW">IKAW</option>
+                    <option value="SOCI (Soil)">SOCI (Soil)</option>
+                    <option value="BI (Soil)">BI (Soil)</option>
+                    <option value="SCI (Soil)">SCI (Soil)</option>
+                    <option value="RI (Soil)">RI (Soil)</option>
+                    <option value="HI (Soil)">HI (Soil)</option>
+                    <option value="SI (Soil)">SI (Soil)</option>
+                </select>
+                <button class="btn btn-secondary" onclick="archiveManager.exportToCSV();" data-i18n="exportCSV">📥 Export as CSV</button>
+            </div>
+            
+            <div class="archive-stats">
+                <div class="stat-item">
+                    <span class="stat-label" data-i18n="totalRecords">Total Records:</span>
+                    <span id="archiveRecordCount" class="stat-value">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label" data-i18n="dateRange">Date Range:</span>
+                    <span id="archiveDateRange" class="stat-value">--</span>
+                </div>
+            </div>
+            
+            <div class="archive-table-wrapper">
+                <table id="archiveTable" class="archive-table">
+                    <thead>
+                        <tr>
+                            <th onclick="archiveManager.sortBy('field_group')" data-i18n="fieldGroup">Field Group ▼</th>
+                            <th onclick="archiveManager.sortBy('analysis_date')" data-i18n="date">Date ▼</th>
+                            <th onclick="archiveManager.sortBy('index_name')" data-i18n="indexName">Index Name ▼</th>
+                            <th onclick="archiveManager.sortBy('index_value')" data-i18n="value">Value ▼</th>
+                            <th data-i18n="actions">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="archiveTableBody">
+                        <tr class="loading-row">
+                            <td colspan="5" data-i18n="loading">Loading...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <div id="archiveEmptyState" class="archive-empty-state hidden">
+                <p data-i18n="noRecords">📭 No analysis records found. Start by uploading and analyzing field images!</p>
+            </div>
+            
+            <div class="archive-pagination">
+                <button id="archivePrevBtn" class="btn btn-small" onclick="archiveManager.previousPage();" data-i18n="previous">← Previous</button>
+                <span id="archivePageInfo">Page 1</span>
+                <button id="archiveNextBtn" class="btn btn-small" onclick="archiveManager.nextPage();" data-i18n="next">Next →</button>
+            </div>
+        </div>
+        
+        <!-- Analysis Tab -->
+        <div id="analysisTab" class="archive-tab-content">
+            <div class="analysis-section">
+                <h3 data-i18n="selectRecordings">Select Archive Recordings</h3>
+                <div class="analysis-controls">
+                    <div class="index-selector">
+                        <label for="analysisIndexFilter" data-i18n="chooseMetric">Choose Target Metric:</label>
+                        <select id="analysisIndexFilter" onchange="analysisManager.updateRecordingsList();">
+                            <option value="" data-i18n="allIndices">All Indices</option>
+                            <option value="NGRDI">NGRDI</option>
+                            <option value="ExG">ExG</option>
+                            <option value="ExR">ExR</option>
+                            <option value="ExGR">ExGR</option>
+                            <option value="VARI">VARI</option>
+                            <option value="GLI">GLI</option>
+                            <option value="MGRVI">MGRVI</option>
+                            <option value="RGBVI">RGBVI</option>
+                            <option value="TGI">TGI</option>
+                            <option value="NDYI">NDYI</option>
+                            <option value="CIVE">CIVE</option>
+                            <option value="NPCI">NPCI</option>
+                            <option value="ExB">ExB</option>
+                            <option value="RGRI">RGRI</option>
+                            <option value="GBRI">GBRI</option>
+                            <option value="IKAW">IKAW</option>
+                            <option value="SOCI (Soil)">SOCI (Soil)</option>
+                            <option value="BI (Soil)">BI (Soil)</option>
+                            <option value="SCI (Soil)">SCI (Soil)</option>
+                            <option value="RI (Soil)">RI (Soil)</option>
+                            <option value="HI (Soil)">HI (Soil)</option>
+                            <option value="SI (Soil)">SI (Soil)</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div id="recordingsList" class="recordings-list"></div>
+                
+                <div class="analysis-buttons">
+                    <button class="btn btn-primary" onclick="analysisManager.showDescriptiveStatistics();" data-i18n="descriptiveStatistics">📊 Descriptive Statistics</button>
+                    <button class="btn btn-primary" onclick="analysisManager.analyzeTrend();" data-i18n="analyzeTrend">📈 Analyze Trend</button>
+                </div>
+            </div>
+            
+            <!-- Descriptive Statistics Results -->
+            <div id="statisticsResults" class="statistics-results hidden">
+                <h3 data-i18n="statisticsResults">Statistical Results</h3>
+                <table class="statistics-table" id="statisticsTable">
+                    <thead>
+                        <tr>
+                            <th id="statisticsHeaderLabel" data-i18n="statistic">Statistic</th>
+                            <th data-i18n="value">Value</th>
+                        </tr>
+                    </thead>
+                    <tbody id="statisticsTableBody"></tbody>
+                </table>
+                <button class="btn btn-secondary" onclick="analysisManager.exportStatistics();" data-i18n="exportResults">📥 Export Results</button>
+            </div>
+            
+            <!-- Trend Analysis Results -->
+            <div id="trendResults" class="trend-results hidden">
+                <h3 data-i18n="trendAnalysis">Trend Analysis</h3>
+                <div class="trend-chart-container">
+                    <canvas id="trendChart"></canvas>
+                </div>
+                <table class="trend-summary-table" id="trendSummaryTable">
+                    <thead>
+                        <tr>
+                            <th id="trendMetricHeader" data-i18n="metric">Metric</th>
+                            <th data-i18n="value">Value</th>
+                        </tr>
+                    </thead>
+                    <tbody id="trendSummaryTableBody"></tbody>
+                </table>
+                <div class="export-buttons">
+                    <button class="btn btn-secondary" onclick="analysisManager.exportTrendResults();" data-i18n="exportResults">📥 Export Results</button>
+                    <button class="btn btn-secondary" onclick="analysisManager.exportChart();" data-i18n="exportPlot">📊 Export Plot</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div id="deleteConfirmModal" class="delete-confirm-modal hidden">
+    <div class="delete-confirm-content">
+        <div class="delete-confirm-header">
+            <h3 data-i18n="deleteRecord">🗑️ Delete Record</h3>
+            <button class="delete-confirm-close" onclick="archiveManager.cancelDelete();">✕</button>
+        </div>
+        <div class="delete-confirm-body">
+            <p id="deleteConfirmMessage" data-i18n="areYouSure">Are you sure you want to delete this record?</p>
+            <p class="delete-confirm-subtext" data-i18n="cannotUndo">This action cannot be undone.</p>
+        </div>
+        <div class="delete-confirm-footer">
+            <button class="btn btn-secondary" onclick="archiveManager.cancelDelete();" data-i18n="cancel">Cancel</button>
+            <button class="btn btn-danger" onclick="archiveManager.confirmDelete();" data-i18n="deleteConfirm">Delete Record</button>
+        </div>
+    </div>
+</div>
