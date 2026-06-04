@@ -168,24 +168,36 @@ class AuthManager {
             console.log('User logged in:', user.email);
 
             // Identify the signed-in user to Pendo
-            pendo.identify({
-                visitor: {
-                    id: user.id,
-                    email: user.email,
-                    full_name: user.user_metadata && user.user_metadata.full_name ? user.user_metadata.full_name : ''
-                },
-                account: {
-                    id: user.email ? user.email.split('@')[1] : 'unknown'
-                }
-            });
+            if (typeof pendo !== 'undefined') {
+                pendo.identify({
+                    visitor: {
+                        id: user.id,
+                        email: user.email,
+                        full_name: user.user_metadata && user.user_metadata.full_name ? user.user_metadata.full_name : ''
+                    },
+                    account: {
+                        id: user.email ? user.email.split('@')[1] : 'unknown'
+                    }
+                });
+            }
 
             // Trigger UI update - can be overridden
             this.updateUIForLoggedIn(user);
         } else {
             console.log('User logged out');
 
-            // Clear Pendo session so the next user is not tracked under the previous identity
-            pendo.clearSession();
+            // Re-initialize Pendo with a stable guest identity to maintain event tracking
+            if (typeof pendo !== 'undefined') {
+                let guestId = localStorage.getItem('pendo_guest_id');
+                if (!guestId) {
+                    guestId = 'guest-' + crypto.randomUUID();
+                    localStorage.setItem('pendo_guest_id', guestId);
+                }
+                pendo.initialize({
+                    visitor: { id: guestId },
+                    account: { id: 'guest' }
+                });
+            }
 
             this.updateUIForLoggedOut();
         }
