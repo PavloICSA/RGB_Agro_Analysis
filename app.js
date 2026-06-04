@@ -5,6 +5,8 @@
         document.getElementById('loginForm').classList.add('hidden');
         document.getElementById('registerForm').classList.add('hidden');
         document.getElementById('mainApp').classList.add('hidden');
+        window.location.hash = '#landing';
+        if (typeof pendo !== 'undefined') pendo.pageLoad();
     }
 
     function showLoginForm() {
@@ -12,6 +14,8 @@
         document.getElementById('loginForm').classList.remove('hidden');
         document.getElementById('registerForm').classList.add('hidden');
         document.getElementById('mainApp').classList.add('hidden');
+        window.location.hash = '#login';
+        if (typeof pendo !== 'undefined') pendo.pageLoad();
     }
 
     /**
@@ -22,6 +26,15 @@
         if (authManager && authManager.currentUser) {
             // Logout from Supabase to clear the session
             await authManager.logout();
+        }
+        // Ensure guest users have a trackable Pendo identity
+        let guestId = localStorage.getItem('pendo_guest_id');
+        if (!guestId) {
+            guestId = 'guest-' + crypto.randomUUID();
+            localStorage.setItem('pendo_guest_id', guestId);
+        }
+        if (typeof pendo !== 'undefined') {
+            pendo.identify({ visitor: { id: guestId }, account: { id: 'guest' } });
         }
         showApp();
     }
@@ -47,6 +60,8 @@
         document.getElementById('loginForm').classList.add('hidden');
         document.getElementById('registerForm').classList.remove('hidden');
         document.getElementById('mainApp').classList.add('hidden');
+        window.location.hash = '#register';
+        if (typeof pendo !== 'undefined') pendo.pageLoad();
     }
 
     function showApp() {
@@ -54,6 +69,8 @@
         document.getElementById('loginForm').classList.add('hidden');
         document.getElementById('registerForm').classList.add('hidden');
         document.getElementById('mainApp').classList.remove('hidden');
+        window.location.hash = '#app';
+        if (typeof pendo !== 'undefined') pendo.pageLoad();
     }
 
     // Override auth manager UI callbacks

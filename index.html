@@ -244,8 +244,11 @@
 <script src="db.js"></script>
 <script src="app.js"></script>
 <script>
-    // Initialize Pendo with anonymous visitor at app entry
-    pendo.initialize({ visitor: { id: '' } });
+    // Initialize Pendo with a unique anonymous visitor ID at app entry
+    pendo.initialize({
+        visitor: { id: 'anon-' + crypto.randomUUID() },
+        account: { id: 'no-account' }
+    });
 
     // Load archive modal HTML
     document.addEventListener('DOMContentLoaded', function() {
