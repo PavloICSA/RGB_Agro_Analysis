@@ -135,7 +135,7 @@ class ArchiveManager {
         if (event.target.classList.contains('delete-btn')) {
             const recordId = event.target.getAttribute('data-record-id');
             if (recordId) {
-                this.deleteRecord(parseInt(recordId));
+                this.deleteRecord(recordId);
             }
         }
     }
