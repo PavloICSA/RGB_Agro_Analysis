@@ -126,9 +126,24 @@
             submitBtn.textContent = i18n.get('signIn');
 
             if (result.success) {
+                // Pendo Track Event: user_login_completed
+                if (typeof pendo !== 'undefined') {
+                    pendo.track('user_login_completed', {
+                        is_demo_account: email === 'demo@agroanalysis.com',
+                        success: true
+                    });
+                }
                 form.reset();
                 showApp();
             } else {
+                // Pendo Track Event: user_login_completed (failure)
+                if (typeof pendo !== 'undefined') {
+                    pendo.track('user_login_completed', {
+                        is_demo_account: email === 'demo@agroanalysis.com',
+                        success: false,
+                        error_message: (result.error || '').substring(0, 100)
+                    });
+                }
                 alert('Login failed: ' + result.error);
             }
         }).catch(error => {
@@ -169,10 +184,27 @@
             submitBtn.textContent = i18n.get('createAccount');
 
             if (result.success) {
+                // Pendo Track Event: user_registered
+                if (typeof pendo !== 'undefined') {
+                    pendo.track('user_registered', {
+                        registration_method: 'email',
+                        has_full_name: !!fullName,
+                        success: true
+                    });
+                }
                 form.reset();
                 alert(result.message || 'Account created successfully! You can now sign in.');
                 showLoginForm();
             } else {
+                // Pendo Track Event: user_registered (failure)
+                if (typeof pendo !== 'undefined') {
+                    pendo.track('user_registered', {
+                        registration_method: 'email',
+                        has_full_name: !!fullName,
+                        success: false,
+                        error_message: (result.error || '').substring(0, 100)
+                    });
+                }
                 alert('Registration failed: ' + result.error);
             }
         }).catch(error => {
@@ -184,9 +216,19 @@
 
     // Language toggle handler for landing page
     document.getElementById('langToggleLanding').addEventListener('click', function() {
-        const newLang = i18n.currentLanguage === 'en' ? 'uk' : 'en';
+        const previousLanguage = i18n.currentLanguage;
+        const newLang = previousLanguage === 'en' ? 'uk' : 'en';
         i18n.setLanguage(newLang);
         this.textContent = newLang === 'en' ? '🇺🇦 УК' : '🇬🇧 EN';
+
+        // Pendo Track Event: language_changed
+        if (typeof pendo !== 'undefined') {
+            pendo.track('language_changed', {
+                new_language: newLang,
+                previous_language: previousLanguage,
+                toggle_location: 'landing'
+            });
+        }
     });
 
     // Setup main language toggle - check if element exists
@@ -195,9 +237,19 @@
         if (langToggle && !langToggle.hasAttribute('data-language-listener')) {
             langToggle.setAttribute('data-language-listener', 'true');
             langToggle.addEventListener('click', function() {
-                const newLang = i18n.currentLanguage === 'en' ? 'uk' : 'en';
+                const previousLanguage = i18n.currentLanguage;
+                const newLang = previousLanguage === 'en' ? 'uk' : 'en';
                 i18n.setLanguage(newLang);
                 this.textContent = newLang === 'en' ? '🇺🇦 УК' : '🇬🇧 EN';
+
+                // Pendo Track Event: language_changed
+                if (typeof pendo !== 'undefined') {
+                    pendo.track('language_changed', {
+                        new_language: newLang,
+                        previous_language: previousLanguage,
+                        toggle_location: 'main_app'
+                    });
+                }
                 
                 // Refresh diagnostics display with new language
                 refreshDiagnosticsDisplay();
@@ -497,6 +549,18 @@
             globalDiagnostics[metricKey] = i18n.getDiagnosis(metricKey, globalCalculatedValues[metricKey], thresholds);
         }
 
+        // Pendo Track Event: image_analysis_completed
+        if (typeof pendo !== 'undefined') {
+            pendo.track('image_analysis_completed', {
+                image_width: img.width,
+                image_height: img.height,
+                total_pixels: totalPixels,
+                indices_computed_count: Object.keys(globalCalculatedValues).length,
+                soil_pixel_count: soilCount,
+                vegetation_pixel_count: totalPixels - soilCount
+            });
+        }
+
         // Unlock selector element and update values
         const selector = document.getElementById('metricSelector');
         selector.disabled = false;
@@ -578,6 +642,16 @@
 
             if (error) {
                 throw error;
+            }
+
+            // Pendo Track Event: analysis_result_saved
+            if (typeof pendo !== 'undefined') {
+                pendo.track('analysis_result_saved', {
+                    index_name: metricKey,
+                    index_value: metricValue,
+                    field_group: fieldGroupName,
+                    analysis_date: analysisDate
+                });
             }
 
             // Success
