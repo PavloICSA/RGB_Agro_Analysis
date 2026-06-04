@@ -15,6 +15,18 @@
     }
 
     /**
+     * Continue as Guest - clears any existing user session
+     */
+    async function continueAsGuest() {
+        // Clear any existing user session to prevent showing previous user's data
+        if (authManager && authManager.currentUser) {
+            // Logout from Supabase to clear the session
+            await authManager.logout();
+        }
+        showApp();
+    }
+
+    /**
      * Auto-fill demo account credentials
      * Email: demo@agroanalysis.com
      * Password: DemoAccount

@@ -611,7 +611,7 @@ body {
     display: flex;
     align-items: center;
     gap: 10px;
-    justify-content: center;
+    justify-content: space-between;
     position: relative;
     flex-wrap: wrap;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
@@ -630,8 +630,7 @@ body {
     transition: all 0.2s;
     flex-shrink: 0;
     white-space: nowrap;
-    position: absolute;
-    left: 16px;
+    order: 1;
 }
 
 .btn-back:hover {
@@ -651,6 +650,7 @@ body {
     white-space: nowrap;
     flex-shrink: 0;
     width: fit-content;
+    order: 2;
 }
 
 .btn-archive:hover {
@@ -659,12 +659,13 @@ body {
 
 .user-greeting-container {
     display: flex;
-    margin: 15px;
+    margin: 0;
     align-items: center;
     gap: 8px;
     flex-shrink: 0;
-    position: absolute;
-    right: 50px;
+    order: 3;
+    flex: 1;
+    justify-content: center;
 }
 
 .user-greeting {
@@ -702,10 +703,7 @@ body {
 .language-switcher {
     margin-left: 0;
     flex-shrink: 0;
-    position: absolute;
-    right: 16px;
-    top: 50%;
-    transform: translateY(-50%);
+    order: 4;
 }
 
 .lang-btn {
@@ -1443,6 +1441,108 @@ body {
 
     .checkbox-list {
         max-height: 200px;
+    }
+}
+
+/* Mobile-specific styles for small screens (phones) */
+@media (max-width: 480px) {
+    /* Stack header elements in a more compact layout on mobile */
+    .app-header {
+        padding: 8px 12px;
+        gap: 6px;
+        justify-content: flex-start;
+    }
+
+    /* Back button stays on left */
+    .btn-back {
+        order: 1;
+        padding: 5px 8px;
+        font-size: 12px;
+        flex-basis: auto;
+    }
+
+    /* Archive button and greeting container wrap to next row */
+    .btn-archive {
+        order: 2;
+        padding: 5px 10px;
+        font-size: 11px;
+        flex-basis: auto;
+    }
+
+    /* User greeting on second row */
+    .user-greeting-container {
+        order: 5;
+        flex: 0 1 auto;
+        justify-content: flex-start;
+        margin-top: 6px;
+        width: 100%;
+    }
+
+    .user-greeting {
+        font-size: 11px;
+        gap: 4px;
+    }
+
+    .user-greeting strong {
+        max-width: 120px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .btn-logout {
+        padding: 4px 8px;
+        font-size: 10px;
+    }
+
+    /* Language switcher on second row right side */
+    .language-switcher {
+        order: 6;
+        flex-basis: auto;
+        align-self: flex-end;
+        margin-top: 6px;
+        margin-left: auto;
+    }
+
+    .lang-btn {
+        padding: 4px 6px;
+        font-size: 9px;
+    }
+
+    /* Main content padding */
+    .container {
+        padding: 20px 15px;
+    }
+
+    /* Maps row stack on mobile */
+    .map-row {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+
+    /* Metric grid adjust for mobile */
+    .metric-grid {
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+
+    /* Inspection title adjust */
+    .inspection-title {
+        font-size: 14px;
+    }
+
+    /* Selector row stack */
+    .selector-row {
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    /* Save section adjust */
+    .save-result-section {
+        padding: 12px;
+    }
+
+    .save-result-section input {
+        margin-bottom: 8px;
     }
 }
 

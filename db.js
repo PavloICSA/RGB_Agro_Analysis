@@ -26,6 +26,19 @@ class ArchiveManager {
             return;
         }
 
+        // Additional check: verify user session is still active in Supabase
+        try {
+            const { data: { session } } = await this.supabase.auth.getSession();
+            if (!session) {
+                alert('Your session has expired. Please log in again.');
+                return;
+            }
+        } catch (error) {
+            console.error('Error verifying session:', error);
+            alert('Unable to verify your session. Please refresh and try again.');
+            return;
+        }
+
         archiveModal.classList.remove('hidden');
         console.log('Opening archive for user:', authManager.currentUser.id);
         try {
