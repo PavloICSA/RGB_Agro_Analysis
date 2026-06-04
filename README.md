@@ -345,12 +345,6 @@ npm test
 
 ---
 
-## 📝 License
-
-ISC License — See LICENSE file for details
-
----
-
 ## 👨‍🔬 Credits
 
 **Developed by:** Dr. Pavlo LYKHOVYD, Senior Researcher
@@ -401,5 +395,3 @@ ISC License — See LICENSE file for details
 ---
 
 **Last Updated:** June 2026
-
-For more information, visit the [Institute of Water Problems and Land Reclamation](https://iwppm.com.ua/)
