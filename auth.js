@@ -173,6 +173,9 @@ class AuthManager {
                     id: user.id,
                     email: user.email,
                     full_name: user.user_metadata && user.user_metadata.full_name ? user.user_metadata.full_name : ''
+                },
+                account: {
+                    id: user.email ? user.email.split('@')[1] : 'unknown'
                 }
             });
 
