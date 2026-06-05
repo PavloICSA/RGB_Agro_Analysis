@@ -269,7 +269,12 @@
         }
         pendo.initialize({
             visitor: { id: guestId },
-            account: { id: 'guest' }
+            account: { id: 'guest' },
+            location: {
+                setUrl: function() {
+                    return window.location.href;
+                }
+            }
         });
     })();
 
