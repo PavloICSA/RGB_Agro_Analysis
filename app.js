@@ -423,6 +423,15 @@
         return [r, g, b];
     }
 
+    // Make empty canvas cards act as upload triggers
+    document.querySelectorAll('.map-card').forEach(function(card) {
+        card.addEventListener('click', function() {
+            if (!card.classList.contains('has-image')) {
+                document.getElementById('fileInput').click();
+            }
+        });
+    });
+
     // Setup input routing links
     document.getElementById('fileInput').addEventListener('change', function(e) {
         const file = e.target.files[0];
@@ -553,6 +562,12 @@
 
         ctxNgrdi.putImageData(outDataNgrdi, 0, 0);
         ctxSoci.putImageData(outDataSoci, 0, 0);
+
+        // Mark map cards as having image content and stop upload zone animation
+        document.querySelectorAll('.map-card').forEach(function(card) {
+            card.classList.add('has-image');
+        });
+        document.querySelector('.upload-section').classList.add('has-image');
 
         // Compile finalized statistical summaries
         globalCalculatedValues = {
