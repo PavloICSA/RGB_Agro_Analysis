@@ -73,6 +73,11 @@
         if (typeof pendo !== 'undefined') pendo.pageLoad();
     }
 
+    // Re-evaluate Pendo page rules on browser back/forward navigation
+    window.addEventListener('hashchange', function() {
+        if (typeof pendo !== 'undefined') pendo.pageLoad();
+    });
+
     // Override auth manager UI callbacks
     AuthManager.prototype.updateUIForLoggedIn = function(user) {
         showApp();
