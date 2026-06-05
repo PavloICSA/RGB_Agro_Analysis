@@ -152,14 +152,26 @@
                 <div class="map-card">
                     <h3 data-i18n="originalImage">Original Image</h3>
                     <canvas id="canvasOrig"></canvas>
+                    <div class="canvas-placeholder">
+                        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                        <span data-i18n="canvasPlaceholder">Upload an image to see results</span>
+                    </div>
                 </div>
                 <div class="map-card">
                     <h3 data-i18n="ngrdiMap">NGRDI Map (Vegetation)</h3>
                     <canvas id="canvasNgrdi"></canvas>
+                    <div class="canvas-placeholder">
+                        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                        <span data-i18n="canvasPlaceholder">Upload an image to see results</span>
+                    </div>
                 </div>
                 <div class="map-card">
                     <h3 data-i18n="sociMap">SOCI Map (Soil Only)</h3>
                     <canvas id="canvasSoci"></canvas>
+                    <div class="canvas-placeholder">
+                        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                        <span data-i18n="canvasPlaceholder">Upload an image to see results</span>
+                    </div>
                 </div>
             </div>
 
@@ -244,8 +256,18 @@
 <script src="db.js"></script>
 <script src="app.js"></script>
 <script>
-    // Initialize Pendo with anonymous visitor at app entry
-    pendo.initialize({ visitor: { id: '' } });
+    // Initialize Pendo with a stable guest visitor ID at app entry
+    (function() {
+        var guestId = localStorage.getItem('pendo_guest_id');
+        if (!guestId) {
+            guestId = 'guest-' + crypto.randomUUID();
+            localStorage.setItem('pendo_guest_id', guestId);
+        }
+        pendo.initialize({
+            visitor: { id: guestId },
+            account: { id: 'guest' }
+        });
+    })();
 
     // Load archive modal HTML
     document.addEventListener('DOMContentLoaded', function() {

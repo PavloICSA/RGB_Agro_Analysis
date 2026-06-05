@@ -5,6 +5,8 @@
         document.getElementById('loginForm').classList.add('hidden');
         document.getElementById('registerForm').classList.add('hidden');
         document.getElementById('mainApp').classList.add('hidden');
+        window.location.hash = '#landing';
+        if (typeof pendo !== 'undefined') pendo.pageLoad();
     }
 
     function showLoginForm() {
@@ -12,6 +14,8 @@
         document.getElementById('loginForm').classList.remove('hidden');
         document.getElementById('registerForm').classList.add('hidden');
         document.getElementById('mainApp').classList.add('hidden');
+        window.location.hash = '#login';
+        if (typeof pendo !== 'undefined') pendo.pageLoad();
     }
 
     /**
@@ -22,6 +26,15 @@
         if (authManager && authManager.currentUser) {
             // Logout from Supabase to clear the session
             await authManager.logout();
+        }
+        // Ensure guest users have a trackable Pendo identity
+        let guestId = localStorage.getItem('pendo_guest_id');
+        if (!guestId) {
+            guestId = 'guest-' + crypto.randomUUID();
+            localStorage.setItem('pendo_guest_id', guestId);
+        }
+        if (typeof pendo !== 'undefined') {
+            pendo.identify({ visitor: { id: guestId }, account: { id: 'guest' } });
         }
         showApp();
     }
@@ -47,6 +60,8 @@
         document.getElementById('loginForm').classList.add('hidden');
         document.getElementById('registerForm').classList.remove('hidden');
         document.getElementById('mainApp').classList.add('hidden');
+        window.location.hash = '#register';
+        if (typeof pendo !== 'undefined') pendo.pageLoad();
     }
 
     function showApp() {
@@ -54,6 +69,8 @@
         document.getElementById('loginForm').classList.add('hidden');
         document.getElementById('registerForm').classList.add('hidden');
         document.getElementById('mainApp').classList.remove('hidden');
+        window.location.hash = '#app';
+        if (typeof pendo !== 'undefined') pendo.pageLoad();
     }
 
     // Override auth manager UI callbacks
@@ -406,6 +423,15 @@
         return [r, g, b];
     }
 
+    // Make empty canvas cards act as upload triggers
+    document.querySelectorAll('.map-card').forEach(function(card) {
+        card.addEventListener('click', function() {
+            if (!card.classList.contains('has-image')) {
+                document.getElementById('fileInput').click();
+            }
+        });
+    });
+
     // Setup input routing links
     document.getElementById('fileInput').addEventListener('change', function(e) {
         const file = e.target.files[0];
@@ -536,6 +562,12 @@
 
         ctxNgrdi.putImageData(outDataNgrdi, 0, 0);
         ctxSoci.putImageData(outDataSoci, 0, 0);
+
+        // Mark map cards as having image content and stop upload zone animation
+        document.querySelectorAll('.map-card').forEach(function(card) {
+            card.classList.add('has-image');
+        });
+        document.querySelector('.upload-section').classList.add('has-image');
 
         // Compile finalized statistical summaries
         globalCalculatedValues = {
