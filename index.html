@@ -278,6 +278,11 @@
         });
     })();
 
+    // Set initial landing hash for Pendo page tracking
+    if (!window.location.hash || window.location.hash === '#') {
+        showLanding();
+    }
+
     // Load archive modal HTML
     document.addEventListener('DOMContentLoaded', function() {
         fetch('db.html')
