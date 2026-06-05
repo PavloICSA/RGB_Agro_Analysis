@@ -202,6 +202,31 @@ body {
             font-weight: 700;
             color: #334155;
         }
+        .metric-nav-group {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .metric-nav-btn {
+            padding: 8px 10px;
+            font-size: 14px;
+            font-weight: 700;
+            border-radius: 6px;
+            border: 1px solid #cbd5e1;
+            background-color: #ffffff;
+            cursor: pointer;
+            outline: none;
+            transition: all 0.2s ease;
+            line-height: 1;
+        }
+        .metric-nav-btn:hover:not(:disabled) {
+            background-color: var(--accent-light);
+            border-color: var(--accent-green);
+        }
+        .metric-nav-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
         select {
             padding: 8px 12px;
             font-size: 13px;
