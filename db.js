@@ -614,6 +614,9 @@ class AnalysisManager {
         const recordingsList = document.getElementById('recordingsList');
         recordingsList.innerHTML = '';
 
+        // Clear previous selections when index changes
+        this.selectedRecords = [];
+
         if (!archiveManager || archiveManager.allRecords.length === 0) {
             recordingsList.innerHTML = `<p style="color: #999;">${i18n.get('noRecordsAvailable')}</p>`;
             return;
