@@ -6,13 +6,23 @@
     <title>Precision Agriculture RGB Analytics Suite</title>
     <link rel="stylesheet" href="style.css">
     <script>
-    (function(apiKey){
-        (function(p,e,n,d,o){var v,w,x,y,z;o=p[d]=p[d]||{};o._q=o._q||[];
-        v=['initialize','identify','updateOptions','pageLoad','track', 'trackAgent'];for(w=0,x=v.length;w<x;++w)(function(m){
-        o[m]=o[m]||function(){o._q[m===v[0]?'unshift':'push']([m].concat([].slice.call(arguments,0)));};})(v[w]);
-        y=e.createElement(n);y.async=!0;y.src='https://cdn.pendo.io/agent/static/'+apiKey+'/pendo.js';
-        z=e.getElementsByTagName(n)[0];z.parentNode.insertBefore(y,z);})(window,document,'script','pendo');
-    })('1f267922-ee14-469d-9e8f-8f35d6038e45');
+    (function() {
+        var host = window.location.hostname;
+        var isBot = /HeadlessChrome/.test(navigator.userAgent);
+        var isProduction = (host === 'rgb-agro-analysis.netlify.app');
+        if (isBot || !isProduction) {
+            // Define a no-op pendo stub so downstream calls don't throw
+            window.pendo = { initialize: function(){}, identify: function(){}, updateOptions: function(){}, pageLoad: function(){}, track: function(){}, trackAgent: function(){} };
+            return;
+        }
+        (function(apiKey){
+            (function(p,e,n,d,o){var v,w,x,y,z;o=p[d]=p[d]||{};o._q=o._q||[];
+            v=['initialize','identify','updateOptions','pageLoad','track', 'trackAgent'];for(w=0,x=v.length;w<x;++w)(function(m){
+            o[m]=o[m]||function(){o._q[m===v[0]?'unshift':'push']([m].concat([].slice.call(arguments,0)));};})(v[w]);
+            y=e.createElement(n);y.async=!0;y.src='https://cdn.pendo.io/agent/static/'+apiKey+'/pendo.js';
+            z=e.getElementsByTagName(n)[0];z.parentNode.insertBefore(y,z);})(window,document,'script','pendo');
+        })('1f267922-ee14-469d-9e8f-8f35d6038e45');
+    })();
     </script>
 </head>
 <body>
@@ -262,6 +272,11 @@
 <script>
     // Initialize Pendo with a stable guest visitor ID at app entry
     (function() {
+        var host = window.location.hostname;
+        var isBot = /HeadlessChrome/.test(navigator.userAgent);
+        var isProduction = (host === 'rgb-agro-analysis.netlify.app');
+        if (isBot || !isProduction) return;
+
         var guestId = localStorage.getItem('pendo_guest_id');
         if (!guestId) {
             guestId = 'guest-' + crypto.randomUUID();
