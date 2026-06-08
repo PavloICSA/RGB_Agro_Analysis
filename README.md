@@ -30,6 +30,7 @@ An advanced satellite imagery analysis platform for precision agriculture. Get i
 - **🚀 Real-Time Analysis** — Instant computation of agronomic metrics from uploaded field imagery
 - **🔒 Privacy First** — Client-side processing with no server-side image storage
 - **✅ One-Click Export** — Export statistical results and trend charts as CSV/PNG
+- **🔄 Comparison Mode** — Side-by-side visualization of any two agronomic indices with real-time statistics and diagnostics
 
 ### Data Management
 - **📈 Supabase Integration** — Secure cloud storage for analysis records and user data
@@ -123,6 +124,18 @@ An advanced satellite imagery analysis platform for precision agriculture. Get i
 - **Browse Tab** — View all historical analyses with filtering and search
 - **Statistics Tab** — Perform descriptive statistics on selected recordings
 - **Trend Analysis** — Analyze temporal trends with linear regression
+
+#### 5. Comparison Mode (Advanced Analysis)
+- Click **"🔄 Comparison View"** button to enter side-by-side comparison mode
+- **Select Two Indices** — Choose any two from all 22 available agronomic indices
+- **Real-Time Visualization** — Both index heatmaps render instantly with color-coded intensity scales
+- **Professional Stat Cards** — Display for each selected index showing:
+  - Index name and computed mean value
+  - Agronomic diagnostics (e.g., "Healthy vegetation" or "Moderate soil activity")
+  - Agricultural context and interpretation
+- **Dynamic Index Switching** — Change either index on-the-fly with live computation
+- **Back to Normal View** — Click **"📊 Normal View"** to return to standard 3-metric layout
+- **Note:** Save Result is only available in Normal View for persistent record storage
 
 ---
 
@@ -293,11 +306,10 @@ DEBUG=false
 ```
 
 ### Supabase Setup
-1. Create a new Supabase project at [supabase.com](https://supabase.com)
-2. Create `analyses` table with schema (see API Integration)
-3. Enable Row Level Security (RLS) for user data isolation
-4. Generate anon API key from project settings
-5. Update `config.js` with credentials
+To enable data persistence and use the Archive & Analytics features:
+- Create a Supabase project at [supabase.com](https://supabase.com)
+- Add your Supabase credentials (`SUPABASE_URL` and `SUPABASE_ANON_KEY`) to `config.js`
+- Database schema and RLS policies will be automatically configured on first authentication
 
 ---
 
