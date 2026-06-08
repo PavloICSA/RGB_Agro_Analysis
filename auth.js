@@ -177,6 +177,11 @@ class AuthManager {
                     },
                     account: {
                         id: user.email ? user.email.split('@')[1] : 'unknown'
+                    },
+                    location: {
+                        setUrl: function() {
+                            return window.location.href;
+                        }
                     }
                 });
             }
@@ -195,7 +200,12 @@ class AuthManager {
                 }
                 pendo.initialize({
                     visitor: { id: guestId },
-                    account: { id: 'guest' }
+                    account: { id: 'guest' },
+                    location: {
+                        setUrl: function() {
+                            return window.location.href;
+                        }
+                    }
                 });
             }
 

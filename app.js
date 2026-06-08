@@ -73,6 +73,11 @@
         if (typeof pendo !== 'undefined') pendo.pageLoad();
     }
 
+    // Re-evaluate Pendo page rules on browser back/forward navigation
+    window.addEventListener('hashchange', function() {
+        if (typeof pendo !== 'undefined') pendo.pageLoad();
+    });
+
     // Override auth manager UI callbacks
     AuthManager.prototype.updateUIForLoggedIn = function(user) {
         showApp();
@@ -608,12 +613,29 @@
         // Unlock selector element and update values
         const selector = document.getElementById('metricSelector');
         selector.disabled = false;
+        document.getElementById('metricPrev').disabled = false;
+        document.getElementById('metricNext').disabled = false;
         updateDashboardView(selector.value);
     }
 
     // Connect selection routing trigger
     document.getElementById('metricSelector').addEventListener('change', function(e) {
         updateDashboardView(e.target.value);
+    });
+
+    document.getElementById('metricPrev').addEventListener('click', function() {
+        const sel = document.getElementById('metricSelector');
+        if (sel.selectedIndex > 0) {
+            sel.selectedIndex--;
+            updateDashboardView(sel.value);
+        }
+    });
+    document.getElementById('metricNext').addEventListener('click', function() {
+        const sel = document.getElementById('metricSelector');
+        if (sel.selectedIndex < sel.options.length - 1) {
+            sel.selectedIndex++;
+            updateDashboardView(sel.value);
+        }
     });
 
     function updateDashboardView(key) {

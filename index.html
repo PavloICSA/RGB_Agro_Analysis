@@ -6,13 +6,23 @@
     <title>Precision Agriculture RGB Analytics Suite</title>
     <link rel="stylesheet" href="style.css">
     <script>
-    (function(apiKey){
-        (function(p,e,n,d,o){var v,w,x,y,z;o=p[d]=p[d]||{};o._q=o._q||[];
-        v=['initialize','identify','updateOptions','pageLoad','track', 'trackAgent'];for(w=0,x=v.length;w<x;++w)(function(m){
-        o[m]=o[m]||function(){o._q[m===v[0]?'unshift':'push']([m].concat([].slice.call(arguments,0)));};})(v[w]);
-        y=e.createElement(n);y.async=!0;y.src='https://cdn.pendo.io/agent/static/'+apiKey+'/pendo.js';
-        z=e.getElementsByTagName(n)[0];z.parentNode.insertBefore(y,z);})(window,document,'script','pendo');
-    })('1f267922-ee14-469d-9e8f-8f35d6038e45');
+    (function() {
+        var host = window.location.hostname;
+        var isBot = /HeadlessChrome/.test(navigator.userAgent);
+        var isProduction = (host === 'rgb-agro-analysis.netlify.app');
+        if (isBot || !isProduction) {
+            // Define a no-op pendo stub so downstream calls don't throw
+            window.pendo = { initialize: function(){}, identify: function(){}, updateOptions: function(){}, pageLoad: function(){}, track: function(){}, trackAgent: function(){} };
+            return;
+        }
+        (function(apiKey){
+            (function(p,e,n,d,o){var v,w,x,y,z;o=p[d]=p[d]||{};o._q=o._q||[];
+            v=['initialize','identify','updateOptions','pageLoad','track', 'trackAgent'];for(w=0,x=v.length;w<x;++w)(function(m){
+            o[m]=o[m]||function(){o._q[m===v[0]?'unshift':'push']([m].concat([].slice.call(arguments,0)));};})(v[w]);
+            y=e.createElement(n);y.async=!0;y.src='https://cdn.pendo.io/agent/static/'+apiKey+'/pendo.js';
+            z=e.getElementsByTagName(n)[0];z.parentNode.insertBefore(y,z);})(window,document,'script','pendo');
+        })('1f267922-ee14-469d-9e8f-8f35d6038e45');
+    })();
     </script>
 </head>
 <body>
@@ -269,30 +279,34 @@
             <div id="normalViewInspection" class="inspection-panel">
                 <div class="selector-row">
                     <label for="metricSelector" data-i18n="chooseMetric">Choose Target Metric:</label>
-                    <select id="metricSelector" disabled>
-                        <option value="NGRDI">NGRDI</option>
-                        <option value="ExG">ExG</option>
-                        <option value="ExR">ExR</option>
-                        <option value="ExGR">ExGR</option>
-                        <option value="VARI">VARI</option>
-                        <option value="GLI">GLI</option>
-                        <option value="MGRVI">MGRVI</option>
-                        <option value="RGBVI">RGBVI</option>
-                        <option value="TGI">TGI</option>
-                        <option value="NDYI">NDYI</option>
-                        <option value="CIVE">CIVE</option>
-                        <option value="NPCI">NPCI</option>
-                        <option value="ExB">ExB</option>
-                        <option value="RGRI">RGRI</option>
-                        <option value="GBRI">GBRI</option>
-                        <option value="IKAW">IKAW</option>
-                        <option value="SOCI (Soil)">SOCI (Soil)</option>
-                        <option value="BI (Soil)">BI (Soil)</option>
-                        <option value="SCI (Soil)">SCI (Soil)</option>
-                        <option value="RI (Soil)">RI (Soil)</option>
-                        <option value="HI (Soil)">HI (Soil)</option>
-                        <option value="SI (Soil)">SI (Soil)</option>
-                    </select>
+                    <div class="metric-nav-group">
+                        <button id="metricPrev" class="metric-nav-btn" disabled>&larr;</button>
+                        <select id="metricSelector" disabled>
+                            <option value="NGRDI">NGRDI</option>
+                            <option value="ExG">ExG</option>
+                            <option value="ExR">ExR</option>
+                            <option value="ExGR">ExGR</option>
+                            <option value="VARI">VARI</option>
+                            <option value="GLI">GLI</option>
+                            <option value="MGRVI">MGRVI</option>
+                            <option value="RGBVI">RGBVI</option>
+                            <option value="TGI">TGI</option>
+                            <option value="NDYI">NDYI</option>
+                            <option value="CIVE">CIVE</option>
+                            <option value="NPCI">NPCI</option>
+                            <option value="ExB">ExB</option>
+                            <option value="RGRI">RGRI</option>
+                            <option value="GBRI">GBRI</option>
+                            <option value="IKAW">IKAW</option>
+                            <option value="SOCI (Soil)">SOCI (Soil)</option>
+                            <option value="BI (Soil)">BI (Soil)</option>
+                            <option value="SCI (Soil)">SCI (Soil)</option>
+                            <option value="RI (Soil)">RI (Soil)</option>
+                            <option value="HI (Soil)">HI (Soil)</option>
+                            <option value="SI (Soil)">SI (Soil)</option>
+                        </select>
+                        <button id="metricNext" class="metric-nav-btn" disabled>&rarr;</button>
+                    </div>
                 </div>
 
                 <div class="metric-grid">
@@ -383,6 +397,11 @@
 <script>
     // Initialize Pendo with a stable guest visitor ID at app entry
     (function() {
+        var host = window.location.hostname;
+        var isBot = /HeadlessChrome/.test(navigator.userAgent);
+        var isProduction = (host === 'rgb-agro-analysis.netlify.app');
+        if (isBot || !isProduction) return;
+
         var guestId = localStorage.getItem('pendo_guest_id');
         if (!guestId) {
             guestId = 'guest-' + crypto.randomUUID();
@@ -390,9 +409,19 @@
         }
         pendo.initialize({
             visitor: { id: guestId },
-            account: { id: 'guest' }
+            account: { id: 'guest' },
+            location: {
+                setUrl: function() {
+                    return window.location.href;
+                }
+            }
         });
     })();
+
+    // Set initial landing hash for Pendo page tracking
+    if (!window.location.hash || window.location.hash === '#') {
+        showLanding();
+    }
 
     // Load archive modal HTML
     document.addEventListener('DOMContentLoaded', function() {
