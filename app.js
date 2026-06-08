@@ -717,3 +717,516 @@
             saveBtn.innerHTML = i18n.get('saveResult');
         }
     }
+
+
+    // ==================== COMPARISON MODE FUNCTIONS ====================
+
+    // Store reference to current canvas data for comparison
+    let comparisonCanvasData = {
+        orig: null,
+        ngrdi: null,
+        soci: null,
+        width: 0,
+        height: 0
+    };
+
+    /**
+     * Switch to normal view (3-column layout)
+     */
+    function switchToNormalMode() {
+        const normalContainer = document.getElementById('normalViewContainer');
+        const comparisonContainer = document.getElementById('comparisonViewContainer');
+        const normalInspection = document.getElementById('normalViewInspection');
+        const comparisonInspection = document.getElementById('comparisonViewInspection');
+        const normalBtn = document.getElementById('normalModeBtn');
+        const comparisonBtn = document.getElementById('comparisonModeBtn');
+        const saveResultSection = document.getElementById('saveResultSection');
+
+        normalContainer.classList.remove('hidden');
+        comparisonContainer.classList.add('hidden');
+        normalInspection.classList.remove('hidden');
+        comparisonInspection.classList.add('hidden');
+        normalBtn.classList.add('active');
+        comparisonBtn.classList.remove('active');
+        
+        // Show save result section in normal view
+        if (saveResultSection && authManager && authManager.currentUser) {
+            saveResultSection.style.display = 'block';
+        }
+
+        // Track mode switch
+        if (typeof pendo !== 'undefined') {
+            pendo.track('comparison_mode_switched', {
+                new_mode: 'normal',
+                previous_mode: 'comparison'
+            });
+        }
+    }
+
+    /**
+     * Switch to comparison view (side-by-side layout)
+     */
+    function switchToComparisonMode() {
+        const normalContainer = document.getElementById('normalViewContainer');
+        const comparisonContainer = document.getElementById('comparisonViewContainer');
+        const normalInspection = document.getElementById('normalViewInspection');
+        const comparisonInspection = document.getElementById('comparisonViewInspection');
+        const normalBtn = document.getElementById('normalModeBtn');
+        const comparisonBtn = document.getElementById('comparisonModeBtn');
+        const saveResultSection = document.getElementById('saveResultSection');
+
+        normalContainer.classList.add('hidden');
+        comparisonContainer.classList.remove('hidden');
+        normalInspection.classList.add('hidden');
+        comparisonInspection.classList.remove('hidden');
+        normalBtn.classList.remove('active');
+        comparisonBtn.classList.add('active');
+        
+        // Hide save result section in comparison view
+        if (saveResultSection) {
+            saveResultSection.style.display = 'none';
+        }
+
+        // Update comparison canvases on mode switch
+        setTimeout(() => {
+            updateComparisonView();
+        }, 0);
+
+        // Track mode switch
+        if (typeof pendo !== 'undefined') {
+            pendo.track('comparison_mode_switched', {
+                new_mode: 'comparison',
+                previous_mode: 'normal'
+            });
+        }
+    }
+
+    // Global storage for generated index canvases
+    let generatedIndexCanvases = {};
+
+    /**
+     * Generate a canvas visualization for a specific index
+     */
+    function generateIndexCanvas(indexKey, imageData, width, height) {
+        // Check if already generated
+        if (generatedIndexCanvases[indexKey]) {
+            return generatedIndexCanvases[indexKey].canvas;
+        }
+
+        // Create a temporary canvas for this index
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        const outData = ctx.createImageData(width, height);
+
+        // Extract pixel data
+        const pixels = imageData.data;
+
+        // Function to get index value based on key
+        function getIndexValue(pixelIndex, R, G, B) {
+            let r = R / 255;
+            let g = G / 255;
+            let b = B / 255;
+
+            const indices = {
+                ngrdi: clamp((g - r) / (g + r + 1e-6), -1.0, 1.0),
+                exg: clamp(2 * g - r - b, -2.0, 2.0),
+                exr: clamp(1.4 * r - g, -2.0, 2.0),
+                exgr: clamp((clamp(2 * g - r - b, -2.0, 2.0)) - (clamp(1.4 * r - g, -2.0, 2.0)), -2.0, 2.0),
+                vari: clamp((g - r) / (Math.abs(g + r - b) < 1e-5 ? 1e-5 : g + r - b), -1.0, 1.0),
+                gli: clamp((2 * g - r - b) / (2 * g + r + b + 1e-6), -1.0, 1.0),
+                mgrvi: clamp((g*g - r*r) / (g*g + r*r + 1e-6), -1.0, 1.0),
+                rgbvi: clamp((g*g - b*r) / (g*g + b*r + 1e-6), -1.0, 1.0),
+                tgi: clamp(g - 0.39 * r - 0.61 * b, -1.0, 1.0),
+                ndyi: clamp((g - b) / (g + b + 1e-6), -1.0, 1.0),
+                cive: clamp(0.441 * r - 0.811 * g + 0.385 * b + 18.78745, 0.0, 30.0),
+                npci: clamp((b - r) / (b + r + 1e-6), -1.0, 1.0),
+                exb: clamp(1.4 * b - g, -2.0, 2.0),
+                rgri: clamp(r / (g + 1e-6), 0.0, 10.0),
+                gbri: clamp(b / (g + 1e-6), 0.0, 10.0),
+                ikaw: clamp((r - b) / (r + b + 1e-6), -1.0, 1.0),
+                soci: clamp(b / (g * r + 1e-6), 0.0, 10.0),
+                bi: clamp(Math.sqrt((r*r + g*g) / 2), 0.0, 1.0),
+                sci: clamp((r - g) / (r + g + 1e-6), -1.0, 1.0),
+                ri: clamp((r*r) / (b * g*g*g + 1e-6), 0.0, 10.0),
+                hi: clamp((2 * r - g - b) / (Math.abs(g - b) < 1e-5 ? 1e-5 : g - b), -5.0, 5.0),
+                si: clamp((r - b) / (r + b + 1e-6), -1.0, 1.0)
+            };
+
+            return indices[indexKey] !== undefined ? indices[indexKey] : 0;
+        }
+
+        // Process pixels and apply color mapping
+        for (let i = 0; i < pixels.length; i += 4) {
+            const pixelIndex = i / 4;
+            let R = pixels[i];
+            let G = pixels[i+1];
+            let B = pixels[i+2];
+
+            // Determine if this is soil (for soil indices)
+            let r = R / 255;
+            let g = G / 255;
+            let exg = clamp(2 * g - r - B / 255, -2.0, 2.0);
+            let isSoil = (exg <= 0);
+
+            // Skip soil indices for vegetation pixels
+            if (indexKey.includes('(')) { // Soil indices have names like "soci", "bi", etc.
+                if (!isSoil) {
+                    // Black out non-soil pixels for soil indices
+                    outData.data[i] = outData.data[i+1] = outData.data[i+2] = 0;
+                    outData.data[i+3] = 255;
+                    continue;
+                }
+            }
+
+            // Get index value
+            let indexValue = getIndexValue(indexKey, R, G, B);
+
+            // Determine color based on index type
+            let rgb;
+            if (indexKey === 'orig') {
+                // Original image - just copy RGB
+                rgb = [R, G, B];
+            } else if (indexKey.startsWith('soci') || indexKey === 'bi' || indexKey === 'sci' || indexKey === 'ri' || indexKey === 'hi' || indexKey === 'si') {
+                // Soil indices - use coffee color
+                rgb = getCoffeeColor(indexValue);
+            } else {
+                // Vegetation indices - use light terrain color
+                rgb = getLightTerrainColor(indexValue);
+            }
+
+            outData.data[i] = rgb[0];
+            outData.data[i+1] = rgb[1];
+            outData.data[i+2] = rgb[2];
+            outData.data[i+3] = 255;
+        }
+
+        ctx.putImageData(outData, 0, 0);
+
+        // Cache the generated canvas
+        generatedIndexCanvases[indexKey] = { canvas: canvas, imageData: outData };
+
+        return canvas;
+    }
+
+    /**
+     * Update title based on canvas type or index key
+     */
+    function updateComparisonTitle(canvasType, titleElement) {
+        titleElement.textContent = getIndexDisplayName(canvasType);
+    }
+
+    /**
+     * Get display name for an index key
+     */
+    function getIndexDisplayName(key) {
+        const names = {
+            'orig': 'Original Image',
+            'ngrdi': 'NGRDI',
+            'exg': 'ExG',
+            'exr': 'ExR',
+            'exgr': 'ExGR',
+            'vari': 'VARI',
+            'gli': 'GLI',
+            'mgrvi': 'MGRVI',
+            'rgbvi': 'RGBVI',
+            'tgi': 'TGI',
+            'ndyi': 'NDYI',
+            'cive': 'CIVE',
+            'npci': 'NPCI',
+            'exb': 'ExB',
+            'rgri': 'RGRI',
+            'gbri': 'GBRI',
+            'ikaw': 'IKAW',
+            'soci': 'SOCI',
+            'bi': 'BI',
+            'sci': 'SCI',
+            'ri': 'RI',
+            'hi': 'HI',
+            'si': 'SI'
+        };
+        return names[key] || key;
+    }
+
+    /**
+     * Convert comparison key to metric name used in i18n and thresholds
+     */
+    function convertKeyToMetricName(key) {
+        const mapping = {
+            'orig': 'NGRDI', // Default for original image
+            'ngrdi': 'NGRDI',
+            'exg': 'ExG',
+            'exr': 'ExR',
+            'exgr': 'ExGR',
+            'vari': 'VARI',
+            'gli': 'GLI',
+            'mgrvi': 'MGRVI',
+            'rgbvi': 'RGBVI',
+            'tgi': 'TGI',
+            'ndyi': 'NDYI',
+            'cive': 'CIVE',
+            'npci': 'NPCI',
+            'exb': 'ExB',
+            'rgri': 'RGRI',
+            'gbri': 'GBRI',
+            'ikaw': 'IKAW',
+            'soci': 'SOCI (Soil)',
+            'bi': 'BI (Soil)',
+            'sci': 'SCI (Soil)',
+            'ri': 'RI (Soil)',
+            'hi': 'HI (Soil)',
+            'si': 'SI (Soil)'
+        };
+        return mapping[key] || 'NGRDI';
+    }
+
+    /**
+     * Update the comparison view based on selected indices
+     */
+    function updateComparisonView() {
+        const leftSelect = document.getElementById('comparisonLeft');
+        const rightSelect = document.getElementById('comparisonRight');
+        const leftCanvas = document.getElementById('canvasComparisonLeft');
+        const rightCanvas = document.getElementById('canvasComparisonRight');
+        const leftTitle = document.getElementById('leftTitle');
+        const rightTitle = document.getElementById('rightTitle');
+
+        if (!leftSelect || !rightSelect || !leftCanvas || !rightCanvas) return;
+
+        // Check if original canvas has content
+        const origCanvas = document.getElementById('canvasOrig');
+        if (!origCanvas || origCanvas.width === 0) {
+            // No image loaded, clear comparison canvases
+            leftCanvas.width = 0;
+            rightCanvas.width = 0;
+            return;
+        }
+
+        const leftValue = leftSelect.value;
+        const rightValue = rightSelect.value;
+
+        // Get the image data from original canvas
+        const origCtx = origCanvas.getContext('2d');
+        const imageData = origCtx.getImageData(0, 0, origCanvas.width, origCanvas.height);
+
+        // Generate or copy canvas for left side
+        if (leftValue === 'orig') {
+            copyCanvasToComparison('orig', leftCanvas);
+        } else {
+            const generatedCanvas = generateIndexCanvas(leftValue, imageData, origCanvas.width, origCanvas.height);
+            leftCanvas.width = generatedCanvas.width;
+            leftCanvas.height = generatedCanvas.height;
+            const ctx = leftCanvas.getContext('2d');
+            ctx.drawImage(generatedCanvas, 0, 0);
+        }
+
+        // Generate or copy canvas for right side
+        if (rightValue === 'orig') {
+            copyCanvasToComparison('orig', rightCanvas);
+        } else {
+            const generatedCanvas = generateIndexCanvas(rightValue, imageData, origCanvas.width, origCanvas.height);
+            rightCanvas.width = generatedCanvas.width;
+            rightCanvas.height = generatedCanvas.height;
+            const ctx = rightCanvas.getContext('2d');
+            ctx.drawImage(generatedCanvas, 0, 0);
+        }
+
+        // Update titles
+        updateComparisonTitle(leftValue, leftTitle);
+        updateComparisonTitle(rightValue, rightTitle);
+
+        // Mark containers as having image
+        const leftContainer = leftCanvas.closest('.comparison-canvas-container');
+        const rightContainer = rightCanvas.closest('.comparison-canvas-container');
+
+        if (leftCanvas.width > 0) {
+            leftContainer.classList.add('has-image');
+        }
+        
+        if (rightCanvas.width > 0) {
+            rightContainer.classList.add('has-image');
+        }
+
+        // Update inspection panel with statistics
+        updateComparisonInspection();
+    }
+
+    /**
+     * Copy canvas data from original canvas to comparison canvas
+     */
+    function copyCanvasToComparison(canvasType, targetCanvas) {
+        const sourceCanvasId = {
+            'orig': 'canvasOrig',
+            'ngrdi': 'canvasNgrdi',
+            'soci': 'canvasSoci'
+        }[canvasType];
+
+        if (!sourceCanvasId) return;
+
+        const sourceCanvas = document.getElementById(sourceCanvasId);
+        if (!sourceCanvas || sourceCanvas.width === 0) return;
+
+        // Set target canvas size to match source
+        targetCanvas.width = sourceCanvas.width;
+        targetCanvas.height = sourceCanvas.height;
+
+        // Copy image data
+        const sourceCtx = sourceCanvas.getContext('2d');
+        const targetCtx = targetCanvas.getContext('2d');
+        const imageData = sourceCtx.getImageData(0, 0, sourceCanvas.width, sourceCanvas.height);
+        targetCtx.putImageData(imageData, 0, 0);
+    }
+
+    /**
+     * Calculate statistics for a given index based on image data
+     */
+    function calculateIndexStatistics(indexKey, imageData, width, height) {
+        const pixels = imageData.data;
+        let values = [];
+
+        for (let i = 0; i < pixels.length; i += 4) {
+            let R = pixels[i];
+            let G = pixels[i+1];
+            let B = pixels[i+2];
+
+            let r = R / 255;
+            let g = G / 255;
+            let b = B / 255;
+
+            // Calculate the index value
+            let indexValue = 0;
+            switch(indexKey) {
+                case 'orig': indexValue = 0; break;
+                case 'ngrdi': indexValue = clamp((g - r) / (g + r + 1e-6), -1.0, 1.0); break;
+                case 'exg': indexValue = clamp(2 * g - r - b, -2.0, 2.0); break;
+                case 'exr': indexValue = clamp(1.4 * r - g, -2.0, 2.0); break;
+                case 'exgr': 
+                    let exg = clamp(2 * g - r - b, -2.0, 2.0);
+                    let exr = clamp(1.4 * r - g, -2.0, 2.0);
+                    indexValue = clamp(exg - exr, -2.0, 2.0);
+                    break;
+                case 'vari': 
+                    let denomVari = g + r - b;
+                    if (Math.abs(denomVari) < 1e-5) denomVari = 1e-5;
+                    indexValue = clamp((g - r) / denomVari, -1.0, 1.0);
+                    break;
+                case 'gli': indexValue = clamp((2 * g - r - b) / (2 * g + r + b + 1e-6), -1.0, 1.0); break;
+                case 'mgrvi': indexValue = clamp((g*g - r*r) / (g*g + r*r + 1e-6), -1.0, 1.0); break;
+                case 'rgbvi': indexValue = clamp((g*g - b*r) / (g*g + b*r + 1e-6), -1.0, 1.0); break;
+                case 'tgi': indexValue = clamp(g - 0.39 * r - 0.61 * b, -1.0, 1.0); break;
+                case 'ndyi': indexValue = clamp((g - b) / (g + b + 1e-6), -1.0, 1.0); break;
+                case 'cive': indexValue = clamp(0.441 * r - 0.811 * g + 0.385 * b + 18.78745, 0.0, 30.0); break;
+                case 'npci': indexValue = clamp((b - r) / (b + r + 1e-6), -1.0, 1.0); break;
+                case 'exb': indexValue = clamp(1.4 * b - g, -2.0, 2.0); break;
+                case 'rgri': indexValue = clamp(r / (g + 1e-6), 0.0, 10.0); break;
+                case 'gbri': indexValue = clamp(b / (g + 1e-6), 0.0, 10.0); break;
+                case 'ikaw': indexValue = clamp((r - b) / (r + b + 1e-6), -1.0, 1.0); break;
+                case 'soci': indexValue = clamp(b / (g * r + 1e-6), 0.0, 10.0); break;
+                case 'bi': indexValue = clamp(Math.sqrt((r*r + g*g) / 2), 0.0, 1.0); break;
+                case 'sci': indexValue = clamp((r - g) / (r + g + 1e-6), -1.0, 1.0); break;
+                case 'ri': indexValue = clamp((r*r) / (b * g*g*g + 1e-6), 0.0, 10.0); break;
+                case 'hi': 
+                    let denomHi = g - b;
+                    if (Math.abs(denomHi) < 1e-5) denomHi = 1e-5;
+                    indexValue = clamp((2 * r - g - b) / denomHi, -5.0, 5.0);
+                    break;
+                case 'si': indexValue = clamp((r - b) / (r + b + 1e-6), -1.0, 1.0); break;
+            }
+
+            values.push(indexValue);
+        }
+
+        // Calculate mean
+        const mean = values.reduce((a, b) => a + b, 0) / values.length;
+        return mean;
+    }
+
+    /**
+     * Update comparison inspection panel with statistics
+     */
+    function updateComparisonInspection() {
+        const leftSelect = document.getElementById('comparisonLeft');
+        const rightSelect = document.getElementById('comparisonRight');
+
+        if (!leftSelect || !rightSelect) {
+            console.warn('Comparison selects not found');
+            return;
+        }
+
+        const origCanvas = document.getElementById('canvasOrig');
+        if (!origCanvas || origCanvas.width === 0) {
+            console.warn('Original canvas not found or empty');
+            return;
+        }
+
+        const leftKey = leftSelect.value;
+        const rightKey = rightSelect.value;
+
+        console.log('Updating comparison inspection for:', leftKey, rightKey);
+
+        // Get image data
+        const origCtx = origCanvas.getContext('2d');
+        const imageData = origCtx.getImageData(0, 0, origCanvas.width, origCanvas.height);
+
+        // Convert keys to metric names
+        const leftMetricName = convertKeyToMetricName(leftKey);
+        const rightMetricName = convertKeyToMetricName(rightKey);
+
+        // Calculate statistics for left side
+        const leftMean = calculateIndexStatistics(leftKey, imageData, origCanvas.width, origCanvas.height);
+        const leftDiagnosis = i18n.getDiagnosis(leftMetricName, leftMean, thresholds);
+        const leftContext = i18n.get('interpretations.' + leftMetricName) || 'No context available';
+
+        console.log('Left:', leftMetricName, leftMean, leftDiagnosis);
+
+        // Update left side elements
+        const leftNameElem = document.getElementById('compLeftIndexName');
+        const leftValueElem = document.getElementById('compLeftValue');
+        const leftDiagnoseElem = document.getElementById('compLeftDiagnose');
+        const leftContextElem = document.getElementById('compLeftContext');
+
+        if (leftNameElem) leftNameElem.textContent = getIndexDisplayName(leftKey);
+        if (leftValueElem) leftValueElem.textContent = leftMean.toFixed(5);
+        if (leftDiagnoseElem) leftDiagnoseElem.textContent = leftDiagnosis;
+        if (leftContextElem) leftContextElem.textContent = leftContext;
+
+        // Calculate statistics for right side
+        const rightMean = calculateIndexStatistics(rightKey, imageData, origCanvas.width, origCanvas.height);
+        const rightDiagnosis = i18n.getDiagnosis(rightMetricName, rightMean, thresholds);
+        const rightContext = i18n.get('interpretations.' + rightMetricName) || 'No context available';
+
+        console.log('Right:', rightMetricName, rightMean, rightDiagnosis);
+
+        // Update right side elements
+        const rightNameElem = document.getElementById('compRightIndexName');
+        const rightValueElem = document.getElementById('compRightValue');
+        const rightDiagnoseElem = document.getElementById('compRightDiagnose');
+        const rightContextElem = document.getElementById('compRightContext');
+
+        if (rightNameElem) rightNameElem.textContent = getIndexDisplayName(rightKey);
+        if (rightValueElem) rightValueElem.textContent = rightMean.toFixed(5);
+        if (rightDiagnoseElem) rightDiagnoseElem.textContent = rightDiagnosis;
+        if (rightContextElem) rightContextElem.textContent = rightContext;
+    }
+
+    /**
+     * Override the processAgronomyData function to also update comparison view
+     * We'll wrap the existing function
+     */
+    const originalProcessAgronomyData = window.processAgronomyData;
+    window.processAgronomyData = function(img) {
+        // Clear cached generated index canvases
+        generatedIndexCanvases = {};
+
+        // Call original function
+        originalProcessAgronomyData.call(this, img);
+
+        // After processing, update comparison view if in comparison mode
+        const comparisonContainer = document.getElementById('comparisonViewContainer');
+        if (comparisonContainer && !comparisonContainer.classList.contains('hidden')) {
+            setTimeout(() => {
+                updateComparisonView();
+            }, 0);
+        }
+    };

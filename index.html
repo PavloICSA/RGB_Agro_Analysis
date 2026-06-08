@@ -148,13 +148,20 @@
                 <input type="file" id="fileInput" accept="image/*">
             </div>
 
-            <div class="map-row">
+            <!-- Toggle Buttons for Normal and Comparison Mode -->
+            <div class="view-mode-toggle">
+                <button class="view-mode-btn active" id="normalModeBtn" onclick="switchToNormalMode()" data-i18n="normalView">📊 Normal View</button>
+                <button class="view-mode-btn" id="comparisonModeBtn" onclick="switchToComparisonMode()" data-i18n="comparisonView">🔄 Comparison View</button>
+            </div>
+
+            <!-- Normal View: Three-Column Layout -->
+            <div id="normalViewContainer" class="map-row">
                 <div class="map-card">
                     <h3 data-i18n="originalImage">Original Image</h3>
                     <canvas id="canvasOrig"></canvas>
                     <div class="canvas-placeholder">
                         <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-                        <span data-i18n="canvasPlaceholder">Upload an image to see results</span>
+                        <span data-i18n="uploadPrompt">Drop field image here or click to upload using File Browser</span>
                     </div>
                 </div>
                 <div class="map-card">
@@ -162,7 +169,7 @@
                     <canvas id="canvasNgrdi"></canvas>
                     <div class="canvas-placeholder">
                         <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-                        <span data-i18n="canvasPlaceholder">Upload an image to see results</span>
+                        <span data-i18n="uploadPrompt">Drop field image here or click to upload using File Browser</span>
                     </div>
                 </div>
                 <div class="map-card">
@@ -170,13 +177,96 @@
                     <canvas id="canvasSoci"></canvas>
                     <div class="canvas-placeholder">
                         <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-                        <span data-i18n="canvasPlaceholder">Upload an image to see results</span>
+                        <span data-i18n="uploadPrompt">Drop field image here or click to upload using File Browser</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Comparison View: Side-by-Side Layout -->
+            <div id="comparisonViewContainer" class="comparison-view hidden">
+                <div class="comparison-controls">
+                    <div class="comparison-selector">
+                        <label for="comparisonLeft" data-i18n="leftImage">Left Image:</label>
+                        <select id="comparisonLeft" onchange="updateComparisonView()">
+                            <option value="orig">Original Image</option>
+                            <option value="ngrdi" selected>NGRDI</option>
+                            <option value="exg">ExG</option>
+                            <option value="exr">ExR</option>
+                            <option value="exgr">ExGR</option>
+                            <option value="vari">VARI</option>
+                            <option value="gli">GLI</option>
+                            <option value="mgrvi">MGRVI</option>
+                            <option value="rgbvi">RGBVI</option>
+                            <option value="tgi">TGI</option>
+                            <option value="ndyi">NDYI</option>
+                            <option value="cive">CIVE</option>
+                            <option value="npci">NPCI</option>
+                            <option value="exb">ExB</option>
+                            <option value="rgri">RGRI</option>
+                            <option value="gbri">GBRI</option>
+                            <option value="ikaw">IKAW</option>
+                            <option value="soci">SOCI (Soil)</option>
+                            <option value="bi">BI (Soil)</option>
+                            <option value="sci">SCI (Soil)</option>
+                            <option value="ri">RI (Soil)</option>
+                            <option value="hi">HI (Soil)</option>
+                            <option value="si">SI (Soil)</option>
+                        </select>
+                    </div>
+                    <div class="comparison-separator">⟷</div>
+                    <div class="comparison-selector">
+                        <label for="comparisonRight" data-i18n="rightImage">Right Image:</label>
+                        <select id="comparisonRight" onchange="updateComparisonView()">
+                            <option value="orig">Original Image</option>
+                            <option value="ngrdi">NGRDI</option>
+                            <option value="exg">ExG</option>
+                            <option value="exr">ExR</option>
+                            <option value="exgr">ExGR</option>
+                            <option value="vari">VARI</option>
+                            <option value="gli">GLI</option>
+                            <option value="mgrvi">MGRVI</option>
+                            <option value="rgbvi">RGBVI</option>
+                            <option value="tgi">TGI</option>
+                            <option value="ndyi">NDYI</option>
+                            <option value="cive">CIVE</option>
+                            <option value="npci">NPCI</option>
+                            <option value="exb">ExB</option>
+                            <option value="rgri">RGRI</option>
+                            <option value="gbri">GBRI</option>
+                            <option value="ikaw">IKAW</option>
+                            <option value="soci">SOCI (Soil)</option>
+                            <option value="bi">BI (Soil)</option>
+                            <option value="sci">SCI (Soil)</option>
+                            <option value="ri">RI (Soil)</option>
+                            <option value="hi">HI (Soil)</option>
+                            <option value="si">SI (Soil)</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="comparison-canvas-row">
+                    <div class="comparison-canvas-container">
+                        <h3 id="leftTitle" data-i18n="originalImage">Original Image</h3>
+                        <canvas id="canvasComparisonLeft"></canvas>
+                        <div class="canvas-placeholder">
+                            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                            <span data-i18n="uploadPrompt">Drop field image here or click to upload using File Browser</span>
+                        </div>
+                    </div>
+                    <div class="comparison-canvas-container">
+                        <h3 id="rightTitle" data-i18n="ngrdiMap">NGRDI Map (Vegetation)</h3>
+                        <canvas id="canvasComparisonRight"></canvas>
+                        <div class="canvas-placeholder">
+                            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                            <span data-i18n="uploadPrompt">Drop field image here or click to upload using File Browser</span>
+                        </div>
                     </div>
                 </div>
             </div>
 
             <div class="inspection-title" data-i18n="inspection">Interactive Agronomic Inspection</div>
-            <div class="inspection-panel">
+            
+            <!-- Normal View: Inspection Panel -->
+            <div id="normalViewInspection" class="inspection-panel">
                 <div class="selector-row">
                     <label for="metricSelector" data-i18n="chooseMetric">Choose Target Metric:</label>
                     <select id="metricSelector" disabled>
@@ -224,6 +314,41 @@
                     <input type="text" id="fieldGroupName" data-placeholder-key="fieldGroupPlaceholder" placeholder="e.g., Field A, North Plot">
                     <button onclick="saveAnalysisResult()" class="btn btn-primary" id="saveResultBtn" data-i18n="saveResult">💾 Save Result</button>
                     <div id="saveMessage" class="save-message"></div>
+                </div>
+            </div>
+
+            <!-- Comparison View: Comparison Statistics Panel -->
+            <div id="comparisonViewInspection" class="comparison-inspection-panel hidden">
+                <div class="comparison-stats-row">
+                    <div class="comparison-stat-card">
+                        <div class="stat-card-header">
+                            <h4 id="compLeftIndexName">ExR</h4>
+                            <span class="stat-card-label" data-i18n="indexMean">Index Mean Value:</span>
+                        </div>
+                        <div class="stat-card-value" id="compLeftValue">--</div>
+                        
+                        <div class="stat-card-label" data-i18n="agronomiDiagnostics">Agronomic Diagnostics:</div>
+                        <div class="stat-card-text" id="compLeftDiagnose">--</div>
+                        
+                        <div class="stat-card-label" data-i18n="agriculturalContext">Agricultural Context:</div>
+                        <div class="stat-card-text" id="compLeftContext">--</div>
+                    </div>
+
+                    <div class="comparison-separator-vertical"></div>
+
+                    <div class="comparison-stat-card">
+                        <div class="stat-card-header">
+                            <h4 id="compRightIndexName">ExG</h4>
+                            <span class="stat-card-label" data-i18n="indexMean">Index Mean Value:</span>
+                        </div>
+                        <div class="stat-card-value" id="compRightValue">--</div>
+                        
+                        <div class="stat-card-label" data-i18n="agronomiDiagnostics">Agronomic Diagnostics:</div>
+                        <div class="stat-card-text" id="compRightDiagnose">--</div>
+                        
+                        <div class="stat-card-label" data-i18n="agriculturalContext">Agricultural Context:</div>
+                        <div class="stat-card-text" id="compRightContext">--</div>
+                    </div>
                 </div>
             </div>
 

@@ -11,6 +11,8 @@ class ArchiveManager {
         this.sortDirection = 'DESC';
         this.supabase = window.supabaseClient;
         this.pendingDeleteId = null;
+        this.selectedRecordIds = new Set();
+        this.isBulkDeleteMode = false;
     }
 
     /**
@@ -230,6 +232,7 @@ class ArchiveManager {
     renderTable() {
         const tableBody = document.getElementById('archiveTableBody');
         const emptyState = document.getElementById('archiveEmptyState');
+        const selectAllCheckbox = document.getElementById('archiveSelectAll');
 
         if (!tableBody) return;
 
@@ -239,6 +242,7 @@ class ArchiveManager {
         if (this.filteredRecords.length === 0) {
             emptyState.classList.remove('hidden');
             this.updatePagination();
+            this.updateBulkToolbar();
             return;
         }
 
@@ -260,8 +264,10 @@ class ArchiveManager {
                 i18n.currentLanguage === 'uk' ? 'uk-UA' : 'en-US'
             );
             const valueStr = parseFloat(record.index_value).toFixed(5);
+            const isChecked = this.selectedRecordIds.has(record.id) ? 'checked' : '';
 
             row.innerHTML = `
+                <td class="checkbox-column"><input type="checkbox" class="record-checkbox" data-record-id="${record.id}" ${isChecked}></td>
                 <td class="cell-field">${this.escapeHtml(record.field_group)}</td>
                 <td class="cell-date">${dateStr}</td>
                 <td class="cell-index">${this.escapeHtml(record.index_name)}</td>
@@ -273,7 +279,95 @@ class ArchiveManager {
             tableBody.appendChild(row);
         });
 
+        // Setup checkbox event listeners
+        this.setupCheckboxListeners();
+        
+        // Update select-all checkbox state
+        const allPageCheckboxes = tableBody.querySelectorAll('.record-checkbox');
+        const checkedCount = Array.from(allPageCheckboxes).filter(cb => cb.checked).length;
+        if (selectAllCheckbox) {
+            selectAllCheckbox.checked = checkedCount === allPageCheckboxes.length && allPageCheckboxes.length > 0;
+        }
+
         this.updatePagination();
+        this.updateBulkToolbar();
+    }
+
+    /**
+     * Setup checkbox event listeners for bulk selection
+     */
+    setupCheckboxListeners() {
+        const tableBody = document.getElementById('archiveTableBody');
+        if (!tableBody) return;
+
+        const checkboxes = tableBody.querySelectorAll('.record-checkbox');
+        checkboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', (e) => {
+                const recordId = e.target.getAttribute('data-record-id');
+                if (e.target.checked) {
+                    this.selectedRecordIds.add(recordId);
+                } else {
+                    this.selectedRecordIds.delete(recordId);
+                }
+                this.updateBulkToolbar();
+            });
+        });
+    }
+
+    /**
+     * Toggle select all checkboxes on current page
+     */
+    toggleSelectAll() {
+        const selectAllCheckbox = document.getElementById('archiveSelectAll');
+        const tableBody = document.getElementById('archiveTableBody');
+        
+        if (!tableBody) return;
+
+        const checkboxes = tableBody.querySelectorAll('.record-checkbox');
+        
+        checkboxes.forEach(checkbox => {
+            const recordId = checkbox.getAttribute('data-record-id');
+            if (selectAllCheckbox.checked) {
+                checkbox.checked = true;
+                this.selectedRecordIds.add(recordId);
+            } else {
+                checkbox.checked = false;
+                this.selectedRecordIds.delete(recordId);
+            }
+        });
+
+        this.updateBulkToolbar();
+    }
+
+    /**
+     * Clear all selections
+     */
+    clearAllSelections() {
+        this.selectedRecordIds.clear();
+        const selectAllCheckbox = document.getElementById('archiveSelectAll');
+        if (selectAllCheckbox) {
+            selectAllCheckbox.checked = false;
+        }
+        this.renderTable();
+    }
+
+    /**
+     * Update bulk operations toolbar visibility and state
+     */
+    updateBulkToolbar() {
+        const toolbar = document.getElementById('bulkOperationsToolbar');
+        const countBadge = document.getElementById('bulkSelectionCount');
+        
+        if (!toolbar || !countBadge) return;
+
+        const selectionCount = this.selectedRecordIds.size;
+        
+        if (selectionCount > 0) {
+            toolbar.classList.remove('hidden');
+            countBadge.textContent = selectionCount;
+        } else {
+            toolbar.classList.add('hidden');
+        }
     }
 
     /**
@@ -436,6 +530,205 @@ class ArchiveManager {
     }
 
     /**
+     * Show bulk delete confirmation modal
+     */
+    showBulkDeleteConfirm() {
+        if (this.selectedRecordIds.size === 0) {
+            alert(i18n.get('noRecordsSelectedForBulk'));
+            return;
+        }
+
+        this.isBulkDeleteMode = true;
+        const modal = document.getElementById('deleteConfirmModal');
+        const titleEl = document.getElementById('deleteConfirmTitle');
+        const messageEl = document.getElementById('deleteConfirmMessage');
+        const btnEl = document.getElementById('deleteConfirmBtn');
+        
+        if (modal && titleEl && messageEl && btnEl) {
+            titleEl.innerText = i18n.get('bulkDeleteConfirm');
+            messageEl.innerText = i18n.get('bulkDeleteMessage').replace('{{count}}', this.selectedRecordIds.size);
+            btnEl.innerText = i18n.get('deleteSelected');
+            modal.classList.remove('hidden');
+        }
+    }
+
+    /**
+     * Confirm and execute bulk delete
+     */
+    async confirmDelete() {
+        if (this.isBulkDeleteMode) {
+            // Bulk delete mode
+            await this.confirmBulkDelete();
+            return;
+        }
+
+        // Single delete mode (existing functionality)
+        if (!this.pendingDeleteId) return;
+
+        const recordId = this.pendingDeleteId;
+        this.cancelDelete();
+
+        try {
+            const { data, error } = await this.supabase
+                .from('analysis_results')
+                .delete()
+                .eq('id', recordId)
+                .select();
+
+            if (error) {
+                console.error('Delete error:', error);
+                this.showError('Failed to delete record: ' + error.message);
+                return;
+            }
+
+            // Pendo Track Event: archive_record_deleted
+            if (typeof pendo !== 'undefined') {
+                pendo.track('archive_record_deleted', {
+                    record_id: recordId,
+                    remaining_records_count: this.allRecords.length - 1
+                });
+            }
+
+            // Remove from local records
+            this.allRecords = this.allRecords.filter(r => r.id !== recordId);
+            this.filteredRecords = this.filteredRecords.filter(r => r.id !== recordId);
+
+            // Reset to first page if needed
+            const totalPages = Math.ceil(this.filteredRecords.length / this.recordsPerPage);
+            if (this.currentPage > totalPages && this.currentPage > 1) {
+                this.currentPage--;
+            }
+
+            this.updateStats();
+            this.renderTable();
+            this.showDeleteSuccess();
+        } catch (error) {
+            console.error('Error deleting record:', error);
+            this.showError('An error occurred while deleting the record');
+        }
+    }
+
+    /**
+     * Confirm and execute bulk delete
+     */
+    async confirmBulkDelete() {
+        if (this.selectedRecordIds.size === 0) return;
+
+        const recordIds = Array.from(this.selectedRecordIds);
+        const deleteCount = recordIds.length;
+        this.isBulkDeleteMode = false;
+        this.cancelDelete();
+
+        try {
+            const { error } = await this.supabase
+                .from('analysis_results')
+                .delete()
+                .in('id', recordIds);
+
+            if (error) {
+                console.error('Bulk delete error:', error);
+                this.showError('Failed to delete records: ' + error.message);
+                return;
+            }
+
+            // Pendo Track Event: bulk_records_deleted
+            if (typeof pendo !== 'undefined') {
+                pendo.track('bulk_records_deleted', {
+                    deleted_count: deleteCount,
+                    remaining_records_count: this.allRecords.length - deleteCount
+                });
+            }
+
+            // Remove from local records
+            this.allRecords = this.allRecords.filter(r => !recordIds.includes(r.id));
+            this.filteredRecords = this.filteredRecords.filter(r => !recordIds.includes(r.id));
+            this.selectedRecordIds.clear();
+
+            // Reset to first page if needed
+            const totalPages = Math.ceil(this.filteredRecords.length / this.recordsPerPage);
+            if (this.currentPage > totalPages && this.currentPage > 1) {
+                this.currentPage--;
+            }
+
+            this.updateStats();
+            this.renderTable();
+            this.showBulkDeleteSuccess(deleteCount);
+        } catch (error) {
+            console.error('Error deleting records:', error);
+            this.showError('An error occurred while deleting the records');
+        }
+    }
+
+    /**
+     * Show success message after bulk deletion
+     */
+    showBulkDeleteSuccess(count) {
+        const tableBody = document.getElementById('archiveTableBody');
+        if (tableBody && tableBody.parentElement) {
+            const message = document.createElement('div');
+            message.className = 'delete-success-message';
+            message.innerText = i18n.get('recordsDeleted').replace('{{count}}', count);
+            tableBody.parentElement.insertBefore(message, tableBody);
+            
+            setTimeout(() => {
+                message.remove();
+            }, 3000);
+        }
+    }
+
+    /**
+     * Export selected records to CSV
+     */
+    bulkExportToCSV() {
+        if (this.selectedRecordIds.size === 0) {
+            alert(i18n.get('noRecordsSelectedForBulk'));
+            return;
+        }
+
+        const recordIds = Array.from(this.selectedRecordIds);
+        const selectedRecords = this.allRecords.filter(r => recordIds.includes(r.id));
+
+        // Prepare CSV headers
+        const headers = [i18n.get('fieldGroup'), i18n.get('date'), i18n.get('indexName'), i18n.get('value')];
+        const csvContent = [headers.join(',')];
+
+        // Add data rows
+        const locale = i18n.currentLanguage === 'uk' ? 'uk-UA' : 'en-US';
+        selectedRecords.forEach(record => {
+            const row = [
+                `"${record.field_group}"`,
+                new Date(record.analysis_date).toLocaleDateString(locale),
+                `"${record.index_name}"`,
+                parseFloat(record.index_value).toFixed(5)
+            ];
+            csvContent.push(row.join(','));
+        });
+
+        // Create blob and download
+        const csv = csvContent.join('\n');
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+
+        link.setAttribute('href', url);
+        const timestamp = new Date().toISOString().split('T')[0];
+        const exportFilename = `analysis_selected_${timestamp}.csv`;
+        link.setAttribute('download', exportFilename);
+        link.style.visibility = 'hidden';
+
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        // Pendo Track Event: bulk_records_exported
+        if (typeof pendo !== 'undefined') {
+            pendo.track('bulk_records_exported', {
+                records_count: this.selectedRecordIds.size,
+                export_filename: exportFilename,
+                locale: i18n.currentLanguage
+            });
+        }
+    }    /**
      * Update archive modal language when language changes
      */
     updateArchiveLanguage() {

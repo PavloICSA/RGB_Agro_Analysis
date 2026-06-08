@@ -213,7 +213,23 @@ const i18n = {
         // Messages
         resultSaved: '✅ Result saved!',
         noRecordsForIndex: 'No records found for selected index',
-        noRecordsAvailable: 'No records available'
+        noRecordsAvailable: 'No records available',
+        
+        // Bulk operations
+        recordsSelected: 'records selected',
+        clearAll: 'Clear All',
+        exportSelected: '📥 Export Selected',
+        deleteSelected: '🗑️ Delete Selected',
+        bulkDeleteConfirm: '🗑️ Delete Records',
+        bulkDeleteMessage: 'Are you sure you want to delete these {{count}} records? This action cannot be undone.',
+        recordsDeleted: '✅ {{count}} records deleted successfully',
+        noRecordsSelectedForBulk: 'Please select at least one record to perform this action',
+        
+        // Comparison Mode
+        normalView: '📊 Normal View',
+        comparisonView: '🔄 Comparison View',
+        leftImage: 'Left Image:',
+        rightImage: 'Right Image:'
     },
     
     // Ukrainian translations (academic)
@@ -425,7 +441,23 @@ const i18n = {
         // Messages
         resultSaved: '✅ Результат збережено!',
         noRecordsForIndex: 'Записи для вибраного індексу не знайдені',
-        noRecordsAvailable: 'Записи недоступні'
+        noRecordsAvailable: 'Записи недоступні',
+        
+        // Bulk operations
+        recordsSelected: 'записів вибрано',
+        clearAll: 'Очистити все',
+        exportSelected: '📥 Експортувати вибрані',
+        deleteSelected: '🗑️ Видалити вибрані',
+        bulkDeleteConfirm: '🗑️ Видалити записи',
+        bulkDeleteMessage: 'Ви впевнені, що хочете видалити ці {{count}} записи? Цю дію не можна скасувати.',
+        recordsDeleted: '✅ {{count}} записів успішно видалено',
+        noRecordsSelectedForBulk: 'Будь ласка, виберіть принаймні один запис для виконання цієї дії',
+        
+        // Comparison Mode
+        normalView: '📊 Нормальний вид',
+        comparisonView: '🔄 Режим порівняння',
+        leftImage: 'Ліве зображення:',
+        rightImage: 'Праве зображення:'
     },
     
     // Set current language
