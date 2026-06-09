@@ -610,6 +610,10 @@
             });
         }
 
+        // Mark image as loaded and enable comparison mode button
+        imageLoaded = true;
+        document.getElementById('comparisonModeBtn').disabled = false;
+
         // Unlock selector element and update values
         const selector = document.getElementById('metricSelector');
         selector.disabled = false;
@@ -825,6 +829,7 @@
 
     // Global storage for generated index canvases
     let generatedIndexCanvases = {};
+    let imageLoaded = false;
 
     /**
      * Generate a canvas visualization for a specific index
@@ -1018,7 +1023,7 @@
 
         // Check if original canvas has content
         const origCanvas = document.getElementById('canvasOrig');
-        if (!origCanvas || origCanvas.width === 0) {
+        if (!origCanvas || !imageLoaded) {
             // No image loaded, clear comparison canvases
             leftCanvas.width = 0;
             rightCanvas.width = 0;
@@ -1177,7 +1182,7 @@
         }
 
         const origCanvas = document.getElementById('canvasOrig');
-        if (!origCanvas || origCanvas.width === 0) {
+        if (!origCanvas || !imageLoaded) {
             console.warn('Original canvas not found or empty');
             return;
         }
@@ -1238,11 +1243,15 @@
      */
     const originalProcessAgronomyData = window.processAgronomyData;
     window.processAgronomyData = function(img) {
-        // Clear cached generated index canvases
+        // Clear cached generated index canvases and reset image state
         generatedIndexCanvases = {};
+        imageLoaded = false;
 
         // Call original function
         originalProcessAgronomyData.call(this, img);
+
+        // Image is now loaded after processing
+        imageLoaded = true;
 
         // After processing, update comparison view if in comparison mode
         const comparisonContainer = document.getElementById('comparisonViewContainer');

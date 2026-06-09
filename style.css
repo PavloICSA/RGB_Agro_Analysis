@@ -153,6 +153,16 @@ body {
             background-color: var(--accent-light);
         }
 
+        .view-mode-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .view-mode-btn:disabled:hover {
+            border-color: var(--border-color);
+            background-color: var(--card-bg);
+        }
+
         .view-mode-btn.active {
             background-color: var(--accent-green);
             color: white;
