@@ -103,7 +103,7 @@
                     <label data-i18n="password">Password</label>
                     <input type="password" id="loginPassword" required placeholder="••••••••" data-i18n="password">
                 </div>
-                <button type="submit" class="btn btn-primary full-width" data-i18n="signIn">Sign In</button>
+                <button type="submit" id="loginSubmitBtn" class="btn btn-primary full-width" data-i18n="signIn">Sign In</button>
                 <button type="button" class="btn btn-secondary full-width" style="margin-top: 10px;" onclick="autofillDemo();" data-i18n="demoAccount">🎯 Demo Account</button>
             </form>
             <p class="form-footer"><span data-i18n="noAccount">Don't have an account?</span> <a href="#" onclick="showRegisterForm(); return false;" data-i18n="registerHere">Register here</a></p>
@@ -132,7 +132,7 @@
                     <label data-i18n="confirmPassword">Confirm Password</label>
                     <input type="password" required placeholder="••••••••" data-i18n="confirmPassword">
                 </div>
-                <button type="submit" class="btn btn-primary full-width" data-i18n="createAccount">Create Account</button>
+                <button type="submit" id="registerSubmitBtn" class="btn btn-primary full-width" data-i18n="createAccount">Create Account</button>
             </form>
             <p class="form-footer"><span data-i18n="alreadyHaveAccount">Already have an account?</span> <a href="#" onclick="showLoginForm(); return false;" data-i18n="signInHere">Sign in here</a></p>
         </div>
@@ -161,7 +161,7 @@
             <!-- Toggle Buttons for Normal and Comparison Mode -->
             <div class="view-mode-toggle">
                 <button class="view-mode-btn active" id="normalModeBtn" onclick="switchToNormalMode()" data-i18n="normalView">📊 Normal View</button>
-                <button class="view-mode-btn" id="comparisonModeBtn" onclick="switchToComparisonMode()" data-i18n="comparisonView">🔄 Comparison View</button>
+                <button class="view-mode-btn" id="comparisonModeBtn" onclick="switchToComparisonMode()" data-i18n="comparisonView" disabled>🔄 Comparison View</button>
             </div>
 
             <!-- Normal View: Three-Column Layout -->
