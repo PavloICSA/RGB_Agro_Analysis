@@ -453,6 +453,58 @@
         reader.readAsDataURL(file);
     });
 
+    // Setup drag-and-drop functionality
+    const uploadSection = document.querySelector('.upload-section');
+    
+    // Prevent default drag behaviors
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        uploadSection.addEventListener(eventName, preventDefaults, false);
+        document.body.addEventListener(eventName, preventDefaults, false);
+    });
+    
+    function preventDefaults(e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+    
+    // Handle drag over styling
+    ['dragenter', 'dragover'].forEach(eventName => {
+        uploadSection.addEventListener(eventName, function() {
+            uploadSection.classList.add('drag-over');
+        }, false);
+    });
+    
+    ['dragleave', 'drop'].forEach(eventName => {
+        uploadSection.addEventListener(eventName, function() {
+            uploadSection.classList.remove('drag-over');
+        }, false);
+    });
+    
+    // Handle dropped files
+    uploadSection.addEventListener('drop', function(e) {
+        const dt = e.dataTransfer;
+        const files = dt.files;
+        const file = files[0];
+        
+        if (!file) return;
+        
+        // Check if it's an image file
+        if (!file.type.startsWith('image/')) {
+            alert('Please drop an image file');
+            return;
+        }
+        
+        const reader = new FileReader();
+        reader.onload = function(event) {
+            const img = new Image();
+            img.onload = function() {
+                processAgronomyData(img);
+            };
+            img.src = event.target.result;
+        };
+        reader.readAsDataURL(file);
+    }, false);
+
     function processAgronomyData(img) {
         // Target downstream normalization scale (Equivalent to ImageResize to 300 width)
         const targetWidth = 300;

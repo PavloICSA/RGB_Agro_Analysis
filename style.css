@@ -108,6 +108,13 @@ body {
             background-color: #c8e6c9;
             border-color: var(--accent-darker);
         }
+        .upload-section.drag-over {
+            background-color: #a5d6a7;
+            border-color: var(--accent-darker);
+            border-width: 2px;
+            box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.15);
+            animation: none;
+        }
         .upload-section p {
             margin: 0;
             font-size: 16px;
