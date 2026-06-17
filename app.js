@@ -71,6 +71,12 @@
         document.getElementById('mainApp').classList.remove('hidden');
         window.location.hash = '#app';
         if (typeof pendo !== 'undefined') pendo.pageLoad();
+        
+        // Initialize tutorial button text
+        const tutorialBtn = document.getElementById('tutorialBtn');
+        if (tutorialBtn) {
+            tutorialBtn.textContent = i18n.get('tutorialGuide');
+        }
     }
 
     // Re-evaluate Pendo page rules on browser back/forward navigation
@@ -111,6 +117,12 @@
                 </div>
                 <button onclick="authManager.logout().then(() => location.reload());" class="btn-logout" data-i18n="logout">${i18n.get('logout')}</button>
             `;
+        }
+        
+        // Initialize tutorial button text
+        const tutorialBtn = document.getElementById('tutorialBtn');
+        if (tutorialBtn) {
+            tutorialBtn.textContent = i18n.get('tutorialGuide');
         }
     };
 
@@ -302,6 +314,17 @@
                 
                 // Update welcome/logout text
                 updateGreetingText();
+                
+                // Update tutorial language
+                if (typeof Tutorial !== 'undefined') {
+                    Tutorial.updateLanguage();
+                }
+                
+                // Update tutorial button text
+                const tutorialBtn = document.getElementById('tutorialBtn');
+                if (tutorialBtn) {
+                    tutorialBtn.textContent = i18n.get('tutorialGuide');
+                }
             });
         }
     };
@@ -345,6 +368,12 @@
         const archiveBtn = document.getElementById('archiveBtn');
         if (archiveBtn) {
             archiveBtn.innerHTML = i18n.get('archiveBtn');
+        }
+        
+        // Update tutorial button
+        const tutorialBtn = document.getElementById('tutorialBtn');
+        if (tutorialBtn) {
+            tutorialBtn.textContent = i18n.get('tutorialGuide');
         }
     };
 

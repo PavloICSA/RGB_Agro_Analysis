@@ -229,7 +229,13 @@ const i18n = {
         normalView: '📊 Normal View',
         comparisonView: '🔄 Comparison View',
         leftImage: 'Left Image:',
-        rightImage: 'Right Image:'
+        rightImage: 'Right Image:',
+        
+        // Tutorial
+        tutorialGuide: '❓ Guide',
+        tutorialFinish: 'Done',
+        previous: '← Previous',
+        next: 'Next →'
     },
     
     // Ukrainian translations (academic)
@@ -457,7 +463,13 @@ const i18n = {
         normalView: '📊 Нормальний вид',
         comparisonView: '🔄 Режим порівняння',
         leftImage: 'Ліве зображення:',
-        rightImage: 'Праве зображення:'
+        rightImage: 'Праве зображення:',
+        
+        // Tutorial
+        tutorialGuide: '❓ Посібник',
+        tutorialFinish: 'Готово',
+        previous: '← Попередня',
+        next: 'Далі →'
     },
     
     // Set current language

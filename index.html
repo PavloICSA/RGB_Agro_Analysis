@@ -142,6 +142,7 @@
     <div id="mainApp" class="main-app hidden">
         <div class="app-header">
             <button class="btn-back" onclick="showLanding();" data-i18n="back">← Back</button>
+            <button class="tutorial-btn-launcher" id="tutorialBtn" onclick="Tutorial.start();" data-i18n="tutorialGuide" title="Start interactive tutorial">❓ Guide</button>
             <button class="btn btn-archive" id="archiveBtn" style="display: none;" onclick="openArchiveWithRetry();" data-i18n="archiveBtn">📊 Archive</button>
             <div id="userGreetingContainer" class="user-greeting-container"></div>
             <div class="language-switcher">
@@ -391,6 +392,7 @@
 <script src="config.js"></script>
 <script src="local.js"></script>
 <script src="math.js"></script>
+<script src="tutorial.js"></script>
 <script src="auth.js"></script>
 <script src="db.js"></script>
 <script src="app.js"></script>
