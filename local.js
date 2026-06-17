@@ -210,6 +210,9 @@ const i18n = {
         statistic: 'Statistic',
         metric: 'Metric',
         
+        // Guest save CTA
+        signInToSave: 'Sign in to save your analysis results',
+
         // Messages
         resultSaved: '✅ Result saved!',
         noRecordsForIndex: 'No records found for selected index',
@@ -444,6 +447,9 @@ const i18n = {
         statistic: 'Статистика',
         metric: 'Метрика',
         
+        // Guest save CTA
+        signInToSave: 'Увійдіть, щоб зберегти результати аналізу',
+
         // Messages
         resultSaved: '✅ Результат збережено!',
         noRecordsForIndex: 'Записи для вибраного індексу не знайдені',
