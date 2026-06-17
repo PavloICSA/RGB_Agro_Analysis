@@ -27,15 +27,34 @@
             // Logout from Supabase to clear the session
             await authManager.logout();
         }
-        // Ensure guest users have a trackable Pendo identity
-        let guestId = localStorage.getItem('pendo_guest_id');
-        if (!guestId) {
-            guestId = 'guest-' + crypto.randomUUID();
-            localStorage.setItem('pendo_guest_id', guestId);
+        // Skip Pendo identification for bots and deploy previews
+        var host = window.location.hostname;
+        var isBot = /HeadlessChrome|Google-Safety|Googlebot|bingbot|Bytespider/.test(navigator.userAgent);
+        var isDeployPreview = /--rgb-agro-analysis\.netlify\.app$/.test(host);
+        if (!isBot && !isDeployPreview) {
+            // Ensure guest users have a trackable Pendo identity
+            let guestId = localStorage.getItem('pendo_guest_id');
+            if (!guestId) {
+                guestId = 'guest-' + crypto.randomUUID();
+                localStorage.setItem('pendo_guest_id', guestId);
+            }
+            if (typeof pendo !== 'undefined') {
+                pendo.identify({ visitor: { id: guestId }, account: { id: 'guest' } });
+            }
         }
-        if (typeof pendo !== 'undefined') {
-            pendo.identify({ visitor: { id: guestId }, account: { id: 'guest' } });
-        }
+
+        // Show save section with guest CTA overlay and disabled inputs
+        var saveSection = document.getElementById('saveResultSection');
+        var guestCta = document.getElementById('guestSaveCta');
+        if (saveSection) saveSection.style.display = 'block';
+        if (guestCta) guestCta.style.display = 'flex';
+        var dateInput = document.getElementById('analysisDate');
+        var groupInput = document.getElementById('fieldGroupName');
+        var saveBtn = document.getElementById('saveResultBtn');
+        if (dateInput) dateInput.disabled = true;
+        if (groupInput) groupInput.disabled = true;
+        if (saveBtn) saveBtn.disabled = true;
+
         showApp();
     }
 
@@ -82,11 +101,22 @@
     AuthManager.prototype.updateUIForLoggedIn = function(user) {
         showApp();
         
-        // Show save result section
+        // Show save result section and hide guest CTA overlay
         const saveSection = document.getElementById('saveResultSection');
         if (saveSection) {
             saveSection.style.display = 'block';
         }
+        const guestCta = document.getElementById('guestSaveCta');
+        if (guestCta) {
+            guestCta.style.display = 'none';
+        }
+        // Enable save inputs for authenticated users
+        var dateInput = document.getElementById('analysisDate');
+        var groupInput = document.getElementById('fieldGroupName');
+        var saveBtn = document.getElementById('saveResultBtn');
+        if (dateInput) dateInput.disabled = false;
+        if (groupInput) groupInput.disabled = false;
+        if (saveBtn) saveBtn.disabled = false;
 
         // Show archive button
         const archiveBtn = document.getElementById('archiveBtn');
@@ -827,8 +857,8 @@
         normalBtn.classList.add('active');
         comparisonBtn.classList.remove('active');
         
-        // Show save result section in normal view
-        if (saveResultSection && authManager && authManager.currentUser) {
+        // Show save result section in normal view (for authenticated users and guest CTA)
+        if (saveResultSection) {
             saveResultSection.style.display = 'block';
         }
 
