@@ -8,9 +8,10 @@
     <script>
     (function() {
         var host = window.location.hostname;
-        var isBot = /HeadlessChrome/.test(navigator.userAgent);
+        var isBot = /HeadlessChrome|Google-Safety|Googlebot|bingbot|Bytespider/.test(navigator.userAgent);
+        var isDeployPreview = /--rgb-agro-analysis\.netlify\.app$/.test(host);
         var isProduction = (host === 'rgb-agro-analysis.netlify.app');
-        if (isBot || !isProduction) {
+        if (isBot || isDeployPreview || !isProduction) {
             // Define a no-op pendo stub so downstream calls don't throw
             window.pendo = { initialize: function(){}, identify: function(){}, updateOptions: function(){}, pageLoad: function(){}, track: function(){}, trackAgent: function(){} };
             return;
@@ -320,7 +321,12 @@
                     <div id="metricContext" data-i18n="noData">No data parsed.</div>
                 </div>
 
-                <div class="save-result-section" id="saveResultSection" style="display: none;">
+                <div class="save-result-section" id="saveResultSection">
+                    <div class="guest-save-cta" id="guestSaveCta" style="display: none;">
+                        <span class="guest-save-cta-icon">🔒</span>
+                        <p data-i18n="signInToSave">Sign in to save your analysis results</p>
+                        <button class="btn btn-secondary" onclick="showLoginForm();" data-i18n="signIn">Sign In</button>
+                    </div>
                     <label for="analysisDate" data-i18n="analysisDate">Analysis Date:</label>
                     <input type="date" id="analysisDate">
                     
@@ -398,9 +404,10 @@
     // Initialize Pendo with a stable guest visitor ID at app entry
     (function() {
         var host = window.location.hostname;
-        var isBot = /HeadlessChrome/.test(navigator.userAgent);
+        var isBot = /HeadlessChrome|Google-Safety|Googlebot|bingbot|Bytespider/.test(navigator.userAgent);
+        var isDeployPreview = /--rgb-agro-analysis\.netlify\.app$/.test(host);
         var isProduction = (host === 'rgb-agro-analysis.netlify.app');
-        if (isBot || !isProduction) return;
+        if (isBot || isDeployPreview || !isProduction) return;
 
         var guestId = localStorage.getItem('pendo_guest_id');
         if (!guestId) {

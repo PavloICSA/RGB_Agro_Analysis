@@ -571,6 +571,35 @@ body {
             background: var(--accent-light);
             border-radius: 8px;
             border: 1px solid var(--border-color);
+            position: relative;
+        }
+
+        .guest-save-cta {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.88);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            z-index: 1;
+            gap: 8px;
+            text-align: center;
+        }
+
+        .guest-save-cta-icon {
+            font-size: 24px;
+        }
+
+        .guest-save-cta p {
+            margin: 0;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-main);
         }
 
         .save-result-section label {
