@@ -43,10 +43,10 @@
             }
         }
 
-        // Show save section with guest CTA overlay and disabled inputs
+        // Hide save section until guest completes first analysis
         var saveSection = document.getElementById('saveResultSection');
         var guestCta = document.getElementById('guestSaveCta');
-        if (saveSection) saveSection.style.display = 'block';
+        if (saveSection) saveSection.style.display = 'none';
         if (guestCta) guestCta.style.display = 'flex';
         var dateInput = document.getElementById('analysisDate');
         var groupInput = document.getElementById('fieldGroupName');
@@ -56,6 +56,16 @@
         if (saveBtn) saveBtn.disabled = true;
 
         showApp();
+
+        // Auto-start tutorial for first-time guests
+        if (!localStorage.getItem('guest_tutorial_seen')) {
+            localStorage.setItem('guest_tutorial_seen', 'true');
+            setTimeout(function() {
+                if (typeof Tutorial !== 'undefined') {
+                    Tutorial.start();
+                }
+            }, 500);
+        }
     }
 
     /**
@@ -489,11 +499,26 @@
 
     // Make empty canvas cards act as upload triggers
     document.querySelectorAll('.map-card').forEach(function(card) {
-        card.addEventListener('click', function() {
+        function triggerUpload() {
             if (!card.classList.contains('has-image')) {
                 document.getElementById('fileInput').click();
             }
-        });
+        }
+        card.addEventListener('click', triggerUpload);
+        var canvas = card.querySelector('canvas');
+        if (canvas) {
+            canvas.addEventListener('click', function(e) {
+                e.stopPropagation();
+                triggerUpload();
+            });
+        }
+        var placeholder = card.querySelector('.canvas-placeholder');
+        if (placeholder) {
+            placeholder.addEventListener('click', function(e) {
+                e.stopPropagation();
+                triggerUpload();
+            });
+        }
     });
 
     // Setup input routing links
@@ -684,6 +709,12 @@
             card.classList.add('has-image');
         });
         document.querySelector('.upload-section').classList.add('has-image');
+
+        // Show save section after first analysis (for guests, show CTA)
+        var saveSection = document.getElementById('saveResultSection');
+        if (saveSection && saveSection.style.display === 'none') {
+            saveSection.style.display = 'block';
+        }
 
         // Compile finalized statistical summaries
         globalCalculatedValues = {
